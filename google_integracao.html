@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — Google Ads, Workspace e BigQuery: como a integração realmente funciona</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Google Ads, Workspace e BigQuery: onde a integração quebra">
+<meta property="og:description" content="Como funciona a arquitetura de acesso entre Google Ads, Gmail/Drive API, BigQuery e GCP — e por que a documentação oficial raramente cobre o caso de uso real.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_google_integracao.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/google_integracao.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_google_integracao.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 620px; margin: 0 0 36px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  /* DIAGRAM (signature element) */
+  .diagram-window { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 20px 60px -25px rgba(0,0,0,0.6); }
+  .diagram-titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .diagram-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .diagram-dot.r { background: #4a3530; } .diagram-dot.y { background: #4a4230; } .diagram-dot.g { background: #304a3a; }
+  .diagram-filename { margin-left: 8px; font-size: 12.5px; color: var(--text-faint); }
+  .diagram-body { padding: 28px 24px; }
+  .diagram-body svg { width: 100%; height: auto; display: block; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  /* LAYER CARDS */
+  .layer-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 16px; }
+  .layer-title { font-weight: 600; font-size: 15.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .layer-num { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-size: 13px; }
+  .layer-desc { color: var(--text-muted); font-size: 14px; max-width: 620px; }
+  .layer-desc code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--mint); }
+
+  /* GAP LIST (diff-style) */
+  .gap-item { display: flex; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); }
+  .gap-item:first-child { border-top: none; }
+  .gap-marker { font-family: 'IBM Plex Mono', monospace; color: var(--rust); font-weight: 700; font-size: 16px; flex-shrink: 0; }
+  .gap-title { font-weight: 600; font-size: 14.5px; margin-bottom: 4px; }
+  .gap-desc { color: var(--text-muted); font-size: 13.5px; max-width: 580px; }
+
+  /* PRACTICE LIST */
+  .practice-item { display: flex; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); }
+  .practice-item:first-child { border-top: none; }
+  .practice-marker { font-family: 'IBM Plex Mono', monospace; color: var(--mint); font-weight: 700; font-size: 16px; flex-shrink: 0; }
+  .practice-title { font-weight: 600; font-size: 14.5px; margin-bottom: 4px; }
+  .practice-desc { color: var(--text-muted); font-size: 13.5px; max-width: 580px; }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Arquitetura · Google Ads · Workspace · BigQuery · GCP</div>
+    <h1>A integração que ninguém desenhou de propósito</h1>
+    <p class="lede">Google Ads, Gmail, Drive e BigQuery não nasceram para funcionar juntos — cada um tem seu próprio modelo de identidade e permissão. Quando uma automação de negócio conecta os quatro, a <strong>documentação oficial raramente cobre o ponto exato onde eles se encontram</strong>.</p>
+
+    <div class="diagram-window">
+      <div class="diagram-titlebar">
+        <span class="diagram-dot r"></span><span class="diagram-dot y"></span><span class="diagram-dot g"></span>
+        <span class="diagram-filename">arquitetura_integracao.svg</span>
+      </div>
+      <div class="diagram-body">
+        <svg viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#5b6673"/>
+            </marker>
+          </defs>
+          <!-- Google Ads MCC -->
+          <rect x="20" y="20" width="150" height="56" rx="8" fill="#1f2933" stroke="#2a3540"/>
+          <text x="95" y="44" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">GOOGLE ADS</text>
+          <text x="95" y="60" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600">MCC</text>
+
+          <!-- Conta filha -->
+          <rect x="20" y="120" width="150" height="56" rx="8" fill="#1f2933" stroke="#c1503a"/>
+          <text x="95" y="144" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">CONTA FILHA</text>
+          <text x="95" y="160" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600">Customer ID</text>
+
+          <line x1="95" y1="76" x2="95" y2="118" stroke="#5b6673" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="108" y="100" fill="#c1503a" font-family="IBM Plex Mono, monospace" font-size="9">não herda acesso</text>
+
+          <!-- Gmail/Drive API -->
+          <rect x="20" y="220" width="150" height="56" rx="8" fill="#1f2933" stroke="#2a3540"/>
+          <text x="95" y="244" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">GMAIL / DRIVE</text>
+          <text x="95" y="260" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600">API</text>
+
+          <!-- Service Account -->
+          <rect x="300" y="120" width="160" height="56" rx="8" fill="#1f2933" stroke="#5fafa0"/>
+          <text x="380" y="144" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">IDENTIDADE TÉCNICA</text>
+          <text x="380" y="160" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600">Service Account</text>
+
+          <line x1="170" y1="148" x2="298" y2="148" stroke="#5b6673" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <line x1="170" y1="248" x2="300" y2="165" stroke="#5b6673" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Secret Scope -->
+          <rect x="300" y="220" width="160" height="56" rx="8" fill="#1f2933" stroke="#e7a93e"/>
+          <text x="380" y="244" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">CREDENCIAL</text>
+          <text x="380" y="260" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600">Secret Scope</text>
+
+          <line x1="380" y1="176" x2="380" y2="218" stroke="#5b6673" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- BigQuery / Databricks -->
+          <rect x="580" y="120" width="160" height="56" rx="8" fill="#1f2933" stroke="#2a3540"/>
+          <text x="660" y="144" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">DATA TRANSFER</text>
+          <text x="660" y="160" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600">BigQuery</text>
+
+          <rect x="580" y="220" width="160" height="56" rx="8" fill="#1f2933" stroke="#2a3540"/>
+          <text x="660" y="244" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">LAKEHOUSE</text>
+          <text x="660" y="260" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600">Databricks</text>
+
+          <line x1="460" y1="148" x2="578" y2="148" stroke="#5b6673" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <line x1="460" y1="248" x2="580" y2="248" stroke="#5b6673" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <line x1="660" y1="176" x2="660" y2="218" stroke="#5b6673" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+          <text x="380" y="308" text-anchor="middle" fill="#5b6673" font-family="IBM Plex Sans, sans-serif" font-size="11">Quatro sistemas, quatro modelos de identidade diferentes — nenhum desenhado para os outros três.</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="camadas">
+  <div class="wrap">
+    <div class="eyebrow">As camadas</div>
+    <h2>Três modelos de identidade que não se falam</h2>
+    <p class="section-lede">Cada sistema resolve "quem pode acessar o quê" de um jeito próprio. A integração só funciona quando alguém entende as três ao mesmo tempo.</p>
+
+    <div class="layer-card">
+      <div class="layer-title"><span class="layer-num mono">01</span> Google Ads — hierarquia MCC</div>
+      <div class="layer-desc">Contas gerenciadoras (<code>MCC</code>) agrupam contas filhas (<code>Customer ID</code>), mas acesso concedido na MCC <strong>não propaga automaticamente</strong> para chamadas de API que apontam diretamente para a conta filha — é necessário o header <code>login-customer-id</code>, ou convite direto na conta filha.</div>
+    </div>
+
+    <div class="layer-card">
+      <div class="layer-title"><span class="layer-num mono">02</span> Google Workspace — identidade humana vs técnica</div>
+      <div class="layer-desc">Convites de acesso via e-mail (usuário humano) e credenciais de <code>Service Account</code> (identidade técnica) seguem fluxos de concessão completamente diferentes — e frequentemente são confundidos na hora de solicitar acesso, gerando pedido no canal errado.</div>
+    </div>
+
+    <div class="layer-card">
+      <div class="layer-title"><span class="layer-num mono">03</span> GCP / Databricks — provisionamento vs atribuição de workspace</div>
+      <div class="layer-desc">Um grupo criado no nível de conta (via sincronização automática com o provedor de identidade) <strong>não é automaticamente atribuído a nenhum workspace</strong> — isso exige uma etapa manual separada, frequentemente feita sem processo documentado.</div>
+    </div>
+  </div>
+</section>
+
+<section class="gaps">
+  <div class="wrap">
+    <div class="eyebrow">Onde a documentação falha</div>
+    <h2>O que raramente está escrito com clareza</h2>
+
+    <div class="gap-item">
+      <span class="gap-marker">✕</span>
+      <div>
+        <div class="gap-title">Erro de permissão sem causa óbvia</div>
+        <div class="gap-desc">A API do Google Ads retorna <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);background:var(--surface);padding:2px 6px;border-radius:4px;">permission_denied</code> mesmo com acesso aparentemente concedido — a causa real (falta do header de MCC, ou acesso só na hierárquica) raramente aparece de forma direta na mensagem de erro.</div>
+      </div>
+    </div>
+
+    <div class="gap-item">
+      <span class="gap-marker">✕</span>
+      <div>
+        <div class="gap-title">Convite de notificação ≠ acesso de dado</div>
+        <div class="gap-desc">Google Ads permite convidar alguém apenas para "receber notificação por e-mail" da conta — visualmente parecido com convite de acesso real, mas sem nenhuma permissão de leitura de dado associada.</div>
+      </div>
+    </div>
+
+    <div class="gap-item">
+      <span class="gap-marker">✕</span>
+      <div>
+        <div class="gap-title">Criação de identidade ≠ acesso a recurso</div>
+        <div class="gap-desc">Em ambientes com integração via SCIM/IdP, a criação automática de um grupo não implica em acesso a nenhum workspace específico — essa é sempre uma segunda decisão, manual, tomada por quem administra a conta.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="praticas">
+  <div class="wrap">
+    <div class="eyebrow">Boas práticas</div>
+    <h2>O que reduz esse tipo de atrito</h2>
+
+    <div class="practice-item">
+      <span class="practice-marker">✓</span>
+      <div>
+        <div class="practice-title">Nomear a camada certa antes de pedir acesso</div>
+        <div class="practice-desc">Separar explicitamente "acesso de usuário humano", "credencial de identidade técnica" e "atribuição de workspace" evita boa parte da confusão em pedidos de suporte.</div>
+      </div>
+    </div>
+
+    <div class="practice-item">
+      <span class="practice-marker">✓</span>
+      <div>
+        <div class="practice-title">Credencial sempre em cofre gerenciado, nunca em arquivo solto</div>
+        <div class="practice-desc">Qualquer JSON de Service Account ou token de API deveria nascer direto em um Secret Scope — nunca em repositório de código ou pasta pessoal, mesmo que "seja só um teste".</div>
+      </div>
+    </div>
+
+    <div class="practice-item">
+      <span class="practice-marker">✓</span>
+      <div>
+        <div class="practice-title">Revisão periódica, não só concessão pontual</div>
+        <div class="practice-desc">Conceder acesso corretamente uma vez não substitui revisão futura — pessoas mudam de time, projetos terminam, e acesso raramente é revogado de forma proativa sem um processo formal de recertificação.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="note">
+      Nota: este conteúdo descreve padrões gerais de arquitetura e problemas documentados publicamente pela própria Google, com base em experiência prática de integração. Não reproduz detalhes específicos de nenhum ambiente corporativo particular.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: arquitetura &amp; governança</span>
+      <span>·</span>
+      <span>stack: google ads api · google workspace admin · bigquery · gcp iam</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
