@@ -137,6 +137,51 @@
   .step-title { font-weight: 600; margin-bottom: 4px; font-size: 15px; }
   .step-body { color: var(--text-muted); font-size: 14px; max-width: 560px; }
 
+  /* COST TABLE (3 fases) */
+  .cost-table {
+    border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .cost-row {
+    display: grid;
+    grid-template-columns: 1.2fr 2fr 1.3fr 0.8fr;
+    gap: 16px;
+    padding: 16px 20px;
+    align-items: center;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .cost-row:first-child { border-top: none; }
+  .cost-header {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--text-faint); background: var(--surface-2);
+  }
+  .cost-phase { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+  .cost-num { color: var(--amber); font-size: 13px; }
+  .cost-detail { color: var(--text-muted); font-size: 13.5px; }
+  .cost-value { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+  .cost-value.ok { color: var(--mint); }
+  .cost-delta { font-family: 'IBM Plex Mono', monospace; color: var(--text-faint); }
+  .cost-delta.ok { color: var(--mint); font-weight: 600; }
+  @media (max-width: 620px) {
+    .cost-row { grid-template-columns: 1fr; gap: 4px; }
+    .cost-header { display: none; }
+    .cost-row:not(.cost-header) { padding: 18px 20px; }
+    .cost-detail::before { content: "→ "; }
+    .cost-value::before { content: "US$/mês: "; color: var(--text-faint); font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; }
+  }
+
+  .cost-summary {
+    display: flex; justify-content: center; text-align: center;
+    border: 1px dashed var(--mint); border-radius: var(--radius);
+    padding: 20px; background: rgba(95,175,160,0.06);
+  }
+  .cost-summary-value {
+    font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 700;
+    color: var(--mint); margin-bottom: 4px;
+  }
+  .cost-summary-label { font-size: 13px; color: var(--text-muted); }
+
   /* NOTE */
   .note {
     border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px;
@@ -228,6 +273,57 @@
       <div class="metric-cell">
         <div class="metric-value">10+</div>
         <div class="metric-label">dias de execução contínua</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="custo">
+  <div class="wrap">
+    <div class="eyebrow">Estudo complementar</div>
+    <h2>O custo mensal em cada fase de maturidade</h2>
+    <p class="section-lede">Estimativa com base em preço público de lista do Google Cloud (2026), aplicado sobre o volume já divulgado acima. Não reflete o custo contratual real do ambiente, que normalmente inclui desconto negociado — serve apenas para ilustrar a ordem de grandeza do ganho entre fases.</p>
+
+    <div class="cost-table">
+      <div class="cost-row cost-header">
+        <div>Fase</div>
+        <div>Formato / Camada</div>
+        <div>Custo mensal (estimado)</div>
+        <div>Variação</div>
+      </div>
+      <div class="cost-row">
+        <div class="cost-phase">
+          <span class="cost-num mono">01</span>
+          <span>As-Is</span>
+        </div>
+        <div class="cost-detail">Tabela nativa no BigQuery (long-term storage)</div>
+        <div class="cost-value">US$ 1.523,71</div>
+        <div class="cost-delta">—</div>
+      </div>
+      <div class="cost-row">
+        <div class="cost-phase">
+          <span class="cost-num mono">02</span>
+          <span>Bucket</span>
+        </div>
+        <div class="cost-detail">Bucket GCS — Standard Storage</div>
+        <div class="cost-value ok">US$ 247,81</div>
+        <div class="cost-delta ok">-83,7%</div>
+      </div>
+      <div class="cost-row">
+        <div class="cost-phase">
+          <span class="cost-num mono">03</span>
+          <span>Archive</span>
+        </div>
+        <div class="cost-detail">Bucket GCS — Archive Storage</div>
+        <div class="cost-value ok">US$ 14,87</div>
+        <div class="cost-delta ok">-99,0%</div>
+      </div>
+    </div>
+
+    <div class="cost-summary">
+      <div class="cost-summary-item">
+        <div class="cost-summary-value">~US$ 18.100</div>
+        <div class="cost-summary-label">economia estimada por ano, comparando Fase 1 → Fase 3</div>
       </div>
     </div>
   </div>
