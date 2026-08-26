@@ -182,6 +182,17 @@
   }
   .cost-summary-label { font-size: 13px; color: var(--text-muted); }
 
+  .hypo-box {
+    border: 1px dashed var(--amber); border-radius: var(--radius);
+    padding: 20px 24px; margin-top: 20px; background: rgba(231,169,62,0.05);
+  }
+  .hypo-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.05em;
+    text-transform: uppercase; font-weight: 600; color: var(--amber); margin-bottom: 10px;
+  }
+  .hypo-text { font-size: 13.5px; color: var(--text-muted); margin: 0; }
+  .hypo-text strong { color: var(--text); font-weight: 500; }
+
   /* NOTE */
   .note {
     border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px;
@@ -282,7 +293,7 @@
   <div class="wrap">
     <div class="eyebrow">Estudo complementar</div>
     <h2>O custo mensal em cada fase de maturidade</h2>
-    <p class="section-lede">Estimativa com base em preço público de lista do Google Cloud (2026), aplicado sobre o volume já divulgado acima. Não reflete o custo contratual real do ambiente, que normalmente inclui desconto negociado — serve apenas para ilustrar a ordem de grandeza do ganho entre fases.</p>
+    <p class="section-lede">Estimativa com base em preço público de lista do Google Cloud (2026), aplicado sobre o volume real medido no projeto (acima). Assume classificação long-term storage na Fase 01 — coerente com dado histórico de anos, majoritariamente sem escrita recente. Não reflete custo contratual real do ambiente, que normalmente inclui desconto negociado — serve para ilustrar a ordem de grandeza do ganho entre fases.</p>
 
     <div class="cost-table">
       <div class="cost-row cost-header">
@@ -293,21 +304,12 @@
       </div>
       <div class="cost-row">
         <div class="cost-phase">
-          <span class="cost-num mono">00</span>
-          <span>Active</span>
-        </div>
-        <div class="cost-detail">Tabela nativa no BigQuery (active storage — dado tocado há &lt;90 dias)</div>
-        <div class="cost-value">US$ 3.047,42</div>
-        <div class="cost-delta">—</div>
-      </div>
-      <div class="cost-row">
-        <div class="cost-phase">
           <span class="cost-num mono">01</span>
           <span>As-Is</span>
         </div>
         <div class="cost-detail">Tabela nativa no BigQuery (long-term storage)</div>
         <div class="cost-value">US$ 1.523,71</div>
-        <div class="cost-delta ok">-50,0%</div>
+        <div class="cost-delta">—</div>
       </div>
       <div class="cost-row">
         <div class="cost-phase">
@@ -316,7 +318,7 @@
         </div>
         <div class="cost-detail">Bucket GCS — Standard Storage</div>
         <div class="cost-value ok">US$ 247,81</div>
-        <div class="cost-delta ok">-91,9%</div>
+        <div class="cost-delta ok">-83,7%</div>
       </div>
       <div class="cost-row">
         <div class="cost-phase">
@@ -325,15 +327,20 @@
         </div>
         <div class="cost-detail">Bucket GCS — Archive Storage</div>
         <div class="cost-value ok">US$ 14,87</div>
-        <div class="cost-delta ok">-99,5%</div>
+        <div class="cost-delta ok">-99,0%</div>
       </div>
     </div>
 
     <div class="cost-summary">
       <div class="cost-summary-item">
-        <div class="cost-summary-value">~US$ 36.400</div>
-        <div class="cost-summary-label">economia estimada por ano, comparando Fase 00 → Fase 03</div>
+        <div class="cost-summary-value">~US$ 18.100</div>
+        <div class="cost-summary-label">economia estimada por ano, comparando Fase 1 → Fase 3</div>
       </div>
+    </div>
+
+    <div class="hypo-box">
+      <div class="hypo-label">Cenário hipotético — o custo de deixar dado "esquecido" em Active Storage</div>
+      <p class="hypo-text">Para ilustrar por que classificação de storage importa: um volume hipotético de <strong>100 TB</strong> parado em Active Storage (tarifa cheia, para dado tocado há menos de 90 dias) custaria <strong>~US$ 24.576/ano</strong>. O mesmo volume, se corretamente reclassificado como Long-term, cairia para <strong>~US$ 12.288/ano</strong> — uma diferença de <strong>US$ 12.288/ano</strong> apenas por classificação incorreta, sem nenhuma mudança de formato ou arquitetura.</p>
     </div>
   </div>
 </section>
