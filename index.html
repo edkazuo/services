@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — Data Platform Engineer</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Ed Kazuo Kuno — Data Platform Engineer">
+<meta property="og:description" content="Engenharia de dados, plataforma analítica e modernização de ambientes corporativos — Databricks, Spark, Linux, SAS, governança de identidade e acesso.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_perfil.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/index.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_perfil.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c;
+    --surface: #171f28;
+    --surface-2: #1f2933;
+    --line: #2a3540;
+    --text: #edeff2;
+    --text-muted: #8d98a6;
+    --text-faint: #5b6673;
+    --rust: #c1503a;
+    --mint: #5fafa0;
+    --amber: #e7a93e;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+
+  /* NAV */
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 12px;
+    color: var(--text-muted); border: 1px solid var(--line); border-radius: 100px;
+    padding: 5px 12px 5px 10px;
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--mint);
+    box-shadow: 0 0 0 3px rgba(95,175,160,0.15);
+  }
+
+  /* LAYOUT: main + sidebar */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 56px;
+    padding: 20px 0 64px;
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; gap: 40px; }
+  }
+
+  /* HERO */
+  .eyebrow {
+    font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--mint); font-weight: 600; margin-bottom: 16px;
+  }
+  h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(30px, 4.2vw, 42px);
+    font-weight: 700; line-height: 1.15; margin: 0 0 14px; letter-spacing: -0.01em;
+  }
+  .role-line { font-size: 16px; color: var(--text-muted); margin: 0 0 28px; }
+  .role-line strong { color: var(--text); font-weight: 500; }
+
+  .contact-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 44px; }
+  .contact-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line); border-radius: 100px; padding: 8px 16px;
+    font-size: 13.5px; color: var(--text-muted); text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .contact-chip:hover { border-color: var(--mint); color: var(--text); }
+
+  /* SECTIONS (main column) */
+  .block { margin-bottom: 48px; }
+  h2 {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.08em;
+    text-transform: uppercase; font-weight: 600; color: var(--text-faint);
+    margin: 0 0 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
+  }
+
+  .bio p { color: var(--text-muted); font-size: 15px; max-width: 620px; }
+  .bio p + p { margin-top: 14px; }
+  .bio strong { color: var(--text); font-weight: 500; }
+
+  /* Highlight stat (Linux 30 anos) */
+  .highlight-stat {
+    display: flex; align-items: center; gap: 18px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px 22px; margin-top: 22px; background: var(--surface);
+  }
+  .highlight-stat .num {
+    font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 700;
+    color: var(--amber); line-height: 1; flex-shrink: 0;
+  }
+  .highlight-stat .desc { font-size: 13.5px; color: var(--text-muted); }
+  .highlight-stat .desc strong { color: var(--text); font-weight: 500; }
+
+  /* SKILLS grouped */
+  .skill-group { margin-bottom: 22px; }
+  .skill-group:last-child { margin-bottom: 0; }
+  .skill-group-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--mint);
+    font-weight: 600; margin-bottom: 10px;
+  }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    font-size: 13px; color: var(--text-muted); border: 1px solid var(--line);
+    border-radius: 6px; padding: 6px 12px; font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* EXPERIENCE */
+  .exp-item { padding: 18px 0; border-top: 1px solid var(--line); }
+  .exp-item:first-child { border-top: none; padding-top: 0; }
+  .exp-role { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
+  .exp-meta { font-size: 13px; color: var(--text-faint); margin-bottom: 8px; }
+  .exp-desc { font-size: 14px; color: var(--text-muted); max-width: 560px; }
+
+  /* SIDEBAR: Projects */
+  .sidebar-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.08em;
+    text-transform: uppercase; font-weight: 600; color: var(--text-faint);
+    margin: 0 0 16px;
+  }
+  .project-card {
+    display: block; text-decoration: none; color: inherit;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 14px; background: var(--surface);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .project-card:hover { border-color: var(--mint); transform: translateY(-1px); }
+  .project-tag {
+    display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px;
+    letter-spacing: 0.05em; text-transform: uppercase; color: var(--mint);
+    background: rgba(95,175,160,0.08); border-radius: 4px; padding: 3px 8px; margin-bottom: 10px;
+  }
+  .project-title { font-weight: 600; font-size: 14.5px; margin-bottom: 6px; line-height: 1.35; }
+  .project-desc { font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px; }
+  .project-metric {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--amber);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .sidebar-note {
+    font-size: 12px; color: var(--text-faint); margin-top: 4px; line-height: 1.5;
+  }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint);
+    display: flex; flex-wrap: wrap; gap: 6px 18px;
+  }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <span class="status-pill"><span class="status-dot"></span>Disponível para novos projetos</span>
+  </nav>
+</div>
+
+<div class="wrap">
+  <div class="layout">
+
+    <!-- MAIN COLUMN -->
+    <main>
+      <div class="eyebrow">Data Platform Engineer</div>
+      <h1>Ed Kazuo Kuno</h1>
+      <p class="role-line">Databricks · Spark · Linux · <strong>Identity &amp; Access</strong> — Mogi das Cruzes, SP</p>
+
+      <div class="contact-row">
+        <a class="contact-chip" href="mailto:ed.kazuo@gmail.com">✉ ed.kazuo@gmail.com</a>
+        <a class="contact-chip" href="https://www.linkedin.com/in/ed-kazuo-kuno-30374823/" target="_blank" rel="noopener">in/ed-kazuo-kuno</a>
+        <a class="contact-chip" href="https://github.com/edkazuo" target="_blank" rel="noopener">github.com/edkazuo</a>
+      </div>
+
+      <div class="block bio">
+        <h2>Sobre</h2>
+        <p>Atuo com engenharia de dados e plataforma analítica, migrando ambientes legados para arquitetura moderna e cuidando de como o acesso a esses dados é governado ao longo do caminho.</p>
+        <p>Trabalho hoje com <strong>modernização de ambientes corporativos</strong> — Databricks, Spark, SAS e autenticação federada (SSO/IdP) — em iniciativas estruturantes que envolvem tanto a arquitetura técnica quanto a governança de identidade e acesso por trás dela.</p>
+
+        <div class="highlight-stat">
+          <div class="num mono">30</div>
+          <div class="desc">anos de experiência com <strong>Linux</strong> — desde o Slackware, configurado na unha em 1995, até hoje sustentando pipeline de dado em produção.</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>Habilidades</h2>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Engenharia de Dados</div>
+          <div class="pill-row">
+            <span class="pill">PySpark</span>
+            <span class="pill">Spark SQL</span>
+            <span class="pill">Delta Lake</span>
+            <span class="pill">Databricks Workflows</span>
+            <span class="pill">Migração SAS</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Cloud &amp; Plataforma</div>
+          <div class="pill-row">
+            <span class="pill">GCP</span>
+            <span class="pill">BigQuery</span>
+            <span class="pill">Google Workspace Admin</span>
+            <span class="pill">Unity Catalog</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Segurança &amp; Governança</div>
+          <div class="pill-row">
+            <span class="pill">IAM</span>
+            <span class="pill">Gestão de Secrets</span>
+            <span class="pill">Identity &amp; Access</span>
+            <span class="pill">Auditoria de Acesso</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Sistemas</div>
+          <div class="pill-row">
+            <span class="pill">Linux (30 anos)</span>
+            <span class="pill">Shell Script</span>
+            <span class="pill">Redes</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>Experiência</h2>
+        <div class="exp-item">
+          <div class="exp-role">Data Platform Engineer</div>
+          <div class="exp-meta">Indústria de bens de consumo · Multinacional</div>
+          <div class="exp-desc">Engenharia de dados e plataforma analítica, com foco em modernização de ambiente legado, arquitetura Lakehouse e governança de acesso a dados sensíveis em ecossistema multi-fornecedor.</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- SIDEBAR -->
+    <aside>
+      <div class="sidebar-label">Projetos</div>
+
+      <a class="project-card" href="sas_databricks.html">
+        <div class="project-tag">Migração</div>
+        <div class="project-title">Ambientes SAS que ninguém quer tocar. Eu toco.</div>
+        <div class="project-desc">Migração de pipelines legados SAS para PySpark/Spark SQL, sem interromper a operação.</div>
+        <div class="project-metric">→ ver case completo</div>
+      </a>
+
+      <a class="project-card" href="gcp_bigquery.html">
+        <div class="project-tag">GCP · BigQuery</div>
+        <div class="project-title">Reduzindo 92% do custo de armazenamento analítico</div>
+        <div class="project-desc">Redesenho de armazenamento de dado histórico, migrando para o ecossistema Lakehouse.</div>
+        <div class="project-metric">→ ver case completo</div>
+      </a>
+
+      <p class="sidebar-note">Novos cases são adicionados conforme projetos são concluídos.</p>
+    </aside>
+
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> status: disponível</span>
+      <span>·</span>
+      <span>stack: pyspark · spark sql · delta lake · unity catalog · gcp</span>
+      <span>·</span>
+      <span>base: Mogi das Cruzes, SP</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

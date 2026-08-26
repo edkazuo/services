@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — Migração BigQuery → Databricks (GCP)</title>
+
+<!-- Open Graph / preview de link (LinkedIn, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Reduzindo 92% do custo de armazenamento de dados analíticos">
+<meta property="og:description" content="Redesenho de como dados históricos de eventos web eram armazenados e consultados, em ambiente corporativo de grande porte — sem impacto na performance de consulta.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_gcp_bigquery.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/gcp_bigquery.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Reduzindo 92% do custo de armazenamento de dados analíticos">
+<meta name="twitter:description" content="Redesenho de como dados históricos de eventos web eram armazenados e consultados, em ambiente corporativo de grande porte — sem impacto na performance de consulta.">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_gcp_bigquery.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c;
+    --surface: #171f28;
+    --surface-2: #1f2933;
+    --line: #2a3540;
+    --text: #edeff2;
+    --text-muted: #8d98a6;
+    --text-faint: #5b6673;
+    --rust: #c1503a;
+    --mint: #5fafa0;
+    --amber: #e7a93e;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  /* NAV */
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; }
+  .back-link {
+    font-size: 13px; color: var(--text-muted); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .back-link:hover { color: var(--text); }
+
+  /* HERO */
+  .hero { padding: 48px 0 40px; }
+  .eyebrow {
+    font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--mint); font-weight: 600; margin-bottom: 18px;
+  }
+  h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(28px, 4.5vw, 40px);
+    font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em;
+  }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 600px; margin: 0 0 36px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  /* MONITOR PANEL (signature element) */
+  .monitor-window {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; box-shadow: 0 20px 60px -25px rgba(0,0,0,0.6);
+  }
+  .monitor-titlebar {
+    display: flex; align-items: center; gap: 8px; padding: 12px 16px;
+    background: var(--surface-2); border-bottom: 1px solid var(--line);
+  }
+  .monitor-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .monitor-dot.r { background: #4a3530; }
+  .monitor-dot.y { background: #4a4230; }
+  .monitor-dot.g { background: #304a3a; }
+  .monitor-filename { margin-left: 8px; font-size: 12.5px; color: var(--text-faint); }
+  .monitor-body { font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 22px 24px; overflow-x: auto; }
+  .monitor-row { display: flex; justify-content: space-between; padding: 7px 0; color: var(--text-muted); white-space: nowrap; gap: 24px; }
+  .monitor-row .k { color: var(--text-faint); }
+  .monitor-row .v { color: var(--text); font-weight: 500; }
+  .monitor-row .v.ok { color: var(--mint); }
+  .monitor-row .v.warn { color: var(--amber); }
+  .monitor-divider { border-top: 1px solid var(--line); margin: 12px 0; }
+  .progress-track { background: var(--line); border-radius: 100px; height: 8px; overflow: hidden; margin: 14px 0 4px; }
+  .progress-fill { background: var(--mint); height: 100%; width: 91.9%; border-radius: 100px; }
+  .progress-label { font-size: 11.5px; color: var(--text-faint); display: flex; justify-content: space-between; }
+
+  /* SECTIONS */
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 {
+    font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px);
+    font-weight: 600; margin: 0 0 20px;
+  }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  /* CHALLENGE / SOLUTION */
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .cs-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .cs-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em;
+    text-transform: uppercase; font-weight: 600; margin-bottom: 14px;
+  }
+  .cs-card.challenge .cs-label { color: var(--rust); }
+  .cs-card.solution .cs-label { color: var(--mint); }
+  .cs-card p { color: var(--text-muted); font-size: 14.5px; margin: 0; }
+  @media (max-width: 620px) { .cs-grid { grid-template-columns: 1fr; } }
+
+  /* METRICS GRID */
+  .metrics-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+  }
+  .metric-cell { background: var(--surface); padding: 26px 20px; text-align: center; }
+  .metric-value {
+    font-family: 'IBM Plex Mono', monospace; font-size: clamp(22px, 3.4vw, 30px);
+    font-weight: 700; color: var(--mint); margin-bottom: 6px; line-height: 1;
+  }
+  .metric-label { font-size: 12px; color: var(--text-muted); }
+  @media (max-width: 620px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  /* APPROACH STEPS */
+  .steps { list-style: none; padding: 0; margin: 0; }
+  .step { display: grid; grid-template-columns: 32px 1fr; gap: 18px; padding: 18px 0; border-top: 1px solid var(--line); }
+  .step:first-child { border-top: none; }
+  .step-num { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-weight: 600; font-size: 13px; padding-top: 2px; }
+  .step-title { font-weight: 600; margin-bottom: 4px; font-size: 15px; }
+  .step-body { color: var(--text-muted); font-size: 14px; max-width: 560px; }
+
+  /* NOTE */
+  .note {
+    border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px;
+    color: var(--text-faint); font-size: 13px; margin-top: 32px;
+  }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint);
+    display: flex; flex-wrap: wrap; gap: 6px 18px;
+  }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono" style="text-decoration:none;">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">GCP · BigQuery</div>
+    <h1>Reduzindo 92% do custo de armazenamento de dados analíticos históricos</h1>
+    <p class="lede">Redesenho da forma como um grande volume de dados históricos de eventos web era armazenado e consultado, em ambiente corporativo de grande porte — sem impacto na performance de consulta para quem consome o dado.</p>
+
+    <div class="monitor-window">
+      <div class="monitor-titlebar">
+        <span class="monitor-dot r"></span>
+        <span class="monitor-dot y"></span>
+        <span class="monitor-dot g"></span>
+        <span class="monitor-filename">status_conversao.log</span>
+      </div>
+      <div class="monitor-body">
+        <div class="monitor-row"><span class="k">partições processadas</span><span class="v ok">22.592 / 22.592</span></div>
+        <div class="monitor-row"><span class="k">erros de execução</span><span class="v ok">0</span></div>
+        <div class="monitor-row"><span class="k">tamanho original</span><span class="v">~148,8 TB</span></div>
+        <div class="monitor-row"><span class="k">tamanho final</span><span class="v ok">~12,1 TB</span></div>
+        <div class="monitor-divider"></div>
+        <div class="progress-label"><span>redução de armazenamento</span><span>91,9%</span></div>
+        <div class="progress-track"><div class="progress-fill"></div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="desafio">
+  <div class="wrap">
+    <div class="eyebrow">O contexto</div>
+    <h2>Dado histórico crescendo, custo crescendo junto</h2>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Desafio</div>
+        <p>Dados de eventos web (sessões, cliques, campanhas) acumulados por anos diretamente em tabelas nativas do BigQuery — formato que cobra por volume de dado escaneado a cada consulta, mesmo em análises pontuais sobre pequenas amostras.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">Abordagem</div>
+        <p>Redesenho do formato e da estratégia de armazenamento, aproveitando recursos nativos do ecossistema Lakehouse — reduzindo custo de forma expressiva sem alterar a experiência de quem consulta o dado no dia a dia.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="resultados">
+  <div class="wrap">
+    <div class="eyebrow">Resultados</div>
+    <h2>Números do processo completo</h2>
+    <p class="section-lede">Processamento executado de forma contínua e monitorada, com validação partição a partição.</p>
+
+    <div class="metrics-grid">
+      <div class="metric-cell">
+        <div class="metric-value">91,9%</div>
+        <div class="metric-label">redução de armazenamento</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-value">22.592</div>
+        <div class="metric-label">partições migradas</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-value">0</div>
+        <div class="metric-label">erros de execução</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-value">10+</div>
+        <div class="metric-label">dias de execução contínua</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="abordagem">
+  <div class="wrap">
+    <div class="eyebrow">Como conduzi</div>
+    <h2>Processamento controlado, não força bruta</h2>
+
+    <ol class="steps">
+      <li class="step">
+        <span class="step-num mono">01</span>
+        <div>
+          <div class="step-title">Diagnóstico de volume e priorização</div>
+          <div class="step-body">Mapeamento de todo o volume existente, priorizando primeiro os casos de maior impacto potencial, com ganho de ritmo natural ao longo do processo.</div>
+        </div>
+      </li>
+      <li class="step">
+        <span class="step-num mono">02</span>
+        <div>
+          <div class="step-title">Ajuste de lote para estabilidade</div>
+          <div class="step-body">Redução do tamanho de lote de processamento simultâneo, diminuindo pressão sobre limites de API e reduzindo a zero a taxa de erro observada durante a execução.</div>
+        </div>
+      </li>
+      <li class="step">
+        <span class="step-num mono">03</span>
+        <div>
+          <div class="step-title">Monitoramento contínuo</div>
+          <div class="step-body">Acompanhamento de progresso, taxa de conversão e ganho de compressão em tempo real, permitindo ajuste fino de ritmo sem intervenção manual constante.</div>
+        </div>
+      </li>
+      <li class="step">
+        <span class="step-num mono">04</span>
+        <div>
+          <div class="step-title">Validação de integridade</div>
+          <div class="step-body">Conferência de contagem e consistência de dado entre origem (BigQuery) e destino (Parquet/Delta Lake) antes de considerar cada lote concluído.</div>
+        </div>
+      </li>
+    </ol>
+
+    <div class="note">
+      Nota: esta página apresenta resultados agregados do projeto. Código-fonte, arquitetura detalhada e decisões estratégicas específicas do ambiente não são divulgados publicamente por razões de confidencialidade.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> status: concluído</span>
+      <span>·</span>
+      <span>stack: bigquery · pyspark · delta lake · databricks</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
