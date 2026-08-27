@@ -159,6 +159,27 @@
   </div>
 </section>
 
+<section class="aprovacoes">
+  <div class="wrap">
+    <div class="eyebrow">A confusão mais cara</div>
+    <h2>Aprovação de negócio não é aprovação de arquitetura</h2>
+    <p class="section-lede">O argumento mais comum pra regularizar um atalho depois que ele já está rodando é "isso já foi aprovado lá em cima". Quase sempre foi — só que outra coisa.</p>
+
+    <div class="cs-grid">
+      <div class="cs-card solution">
+        <div class="cs-label">O que a diretoria aprovou</div>
+        <p>O problema a resolver, a prioridade, o orçamento pro resultado. "Sim, esse indicador importa, vale investir em resolver a extração manual." Isso é real e não muda.</p>
+      </div>
+      <div class="cs-card challenge">
+        <div class="cs-label">O que ela nunca viu</div>
+        <p>Qual credencial foi usada, qual ambiente processou o dado, pra onde ele saiu. Decisão técnica que nunca chegou na mesa — quem apresenta pra diretoria fala de resultado, não de arquitetura.</p>
+      </div>
+    </div>
+
+    <div class="note">Tratar aprovação de negócio como se autorizasse o método é como usar orçamento de viagem aprovado pelo chefe como se isso desse carteira de motorista. São duas aprovações, de dois donos, em momentos diferentes — e só a primeira costuma existir.</div>
+  </div>
+</section>
+
 <section class="diagrama">
   <div class="wrap">
     <div class="eyebrow">O caminho, ponta a ponta</div>
@@ -213,6 +234,40 @@
   </div>
 </section>
 
+<section class="causas">
+  <div class="wrap">
+    <div class="eyebrow">Duas raízes, mesmo resultado</div>
+    <h2>Nem sempre é malícia — às vezes é ausência de caminho</h2>
+    <p class="section-lede">Dá pra chegar no mesmo atalho por dois motivos bem diferentes, e isso muda como a organização deveria responder.</p>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Por desconhecimento</div>
+        <p>Quem resolve não pensa "isso é infraestrutura" — pensa "automatizei uma tarefa chata". Sem esse enquadramento mental, nunca ocorre perguntar pro time certo antes de começar.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">Por falta de política de plataforma</div>
+        <p>Às vezes a pessoa até sabe que devia pedir permissão, mas não existe canal, dono ou processo claro pra isso. Se o caminho certo não existe ou é lento demais, o atalho vira a única opção disponível.</p>
+      </div>
+    </div>
+
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+        <span class="code-filename">onde_o_codigo_mora.diff</span>
+      </div>
+      <div class="code-body">
+        <span class="code-line rm">- dev: GitHub Enterprise corporativo, secret scanning, review obrigatório</span>
+        <span class="code-line rm">- usuário de negócio automatizando com IA: nenhum git corporativo disponível</span>
+        <span class="code-line blank"></span>
+        <span class="code-line add">+ solução encontrada sozinho: repositório pessoal no GitHub</span>
+        <span class="code-line add">+ código de produção e credencial, sem scanning, sem review, sem dono</span>
+      </div>
+    </div>
+    <p style="color: var(--text-muted); font-size: 14.5px; max-width: 620px;">O ambiente pensado pra quem programa profissionalmente tem controle de sobra. Quem nunca precisou de git até ontem não tem opção nenhuma — e cria uma, sozinho, do jeito que dá.</p>
+  </div>
+</section>
+
 <section class="risco">
   <div class="wrap">
     <div class="eyebrow">O que fica invisível</div>
@@ -239,6 +294,29 @@
       <div class="fn-row">
         <div class="fn-name">Revelação lenta</div>
         <div class="fn-desc">Sem fatura, sem contrato, sem atrito — o gatilho natural de exposição do Shadow IT clássico simplesmente não existe aqui.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="preco">
+  <div class="wrap">
+    <div class="eyebrow">Se der errado</div>
+    <h2>O preço não aparece na hora — aparece depois, e maior</h2>
+    <p class="section-lede">Enquanto funciona, o atalho parece grátis. O custo só some da conta quando alguém vai procurar quem é o dono, e não encontra.</p>
+
+    <div class="fn-table">
+      <div class="fn-row">
+        <div class="fn-name">Financeiro</div>
+        <div class="fn-desc">Multa de LGPD se dado pessoal circular fora de ambiente controlado, sem contrato de processamento — e o custo de resposta a incidente costuma superar de longe o de ter feito certo desde o início.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Segurança</div>
+        <div class="fn-desc">Credencial fora de qualquer inventário, sem rotação, sobrevivendo à saída de quem a criou — ninguém sabe que ela ainda existe até uma auditoria ou um incidente forçarem a descoberta.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Reputacional</div>
+        <div class="fn-desc">"Vazamento por negligência de governança" pesa mais do que "vazamento por falha de sistema aprovado" — a manchete não fica sobre o ataque, fica sobre a ausência de controle interno.</div>
       </div>
     </div>
   </div>
@@ -284,7 +362,7 @@
     <div class="statusbar">
       <span><span class="ok">●</span> tema: governança &amp; segurança</span>
       <span>·</span>
-      <span>stack: shadow it · ia generativa · gcp · google workspace</span>
+      <span>stack: shadow it · ia generativa · platform governance · gcp · google workspace</span>
       <span>·</span>
       <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
     </div>
