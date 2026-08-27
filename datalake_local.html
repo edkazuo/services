@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ed Kazuo Kuno — Datalake local do zero: Spark + MinIO + Hive Metastore</title>
+<title>Ed Kazuo Kuno — Datalake local do zero: Spark, MinIO, Hive Metastore, Delta Lake e Streamlit</title>
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="Datalake local do zero: Spark + MinIO + Hive Metastore (MySQL, não Derby)">
-<meta property="og:description" content="Setup completo de ambiente Lakehouse local em Linux — e por que Derby, o metastore padrão do Hive, não serve para nada além de teste isolado de uma sessão.">
+<meta property="og:title" content="Datalake local do zero: Spark, MinIO, Delta Lake e Streamlit">
+<meta property="og:description" content="Setup completo de ambiente Lakehouse local em Linux — MySQL no lugar de Derby, ACID e rollback via Delta Lake, e interface em Streamlit por cima.">
 <meta property="og:image" content="https://edkazuo.github.io/services/cover_datalake_local.png">
 <meta property="og:url" content="https://edkazuo.github.io/services/datalake_local.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -105,9 +105,9 @@
 
 <header class="hero">
   <div class="wrap">
-    <div class="eyebrow">Ambiente Local · Spark · MinIO · Hive Metastore</div>
-    <h1>Datalake local do zero, sem depender de nuvem</h1>
-    <p class="lede">Spark para processar, MinIO como storage compatível com S3, e Hive Metastore com <strong>MySQL</strong> — não Derby — como catálogo. Tudo rodando num único Linux, replicando a arquitetura de um Lakehouse de verdade em escala reduzida.</p>
+    <div class="eyebrow">Ambiente Local · Spark · MinIO · Hive Metastore · Delta Lake</div>
+    <h1>Datalake local do zero — até virar Lakehouse de verdade</h1>
+    <p class="lede">Spark para processar, MinIO como storage compatível com S3, Hive Metastore com <strong>MySQL</strong> como catálogo, <strong>Delta Lake</strong> trazendo transação ACID e versionamento — e uma interface em Streamlit por cima, pra não depender de notebook pra explorar o dado.</p>
 
     <div class="diagram-window">
       <div class="diagram-titlebar">
@@ -170,6 +170,25 @@
       <div class="label">O erro que aparece na prática</div>
       <pre>ERROR XSDB6: Another instance of Derby may have already booted
 the database /home/user/metastore_db.</pre>
+    </div>
+  </div>
+</section>
+
+<section class="delta-acid">
+  <div class="wrap">
+    <div class="eyebrow">Por que Delta Lake</div>
+    <h2>O mundo analytics nunca teve "commit" e "rollback" — até agora</h2>
+    <p class="section-lede">Banco transacional sempre teve essa garantia embutida: ou a transação inteira acontece, ou nada acontece, e dá pra desfazer. Parquet puro sobre um data lake nunca teve isso.</p>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Parquet puro (sem Delta)</div>
+        <p>Escrita não é atômica entre múltiplos arquivos — um job que falha no meio pode deixar dado parcial. Não existe isolamento entre quem lê e quem escreve. E se um <code>OVERWRITE</code> ou <code>UPDATE</code> sair errado, <strong>não existe "desfazer"</strong> — só reprocessar tudo de novo a partir da fonte, se ainda existir.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">Delta Lake</div>
+        <p>Mantém um log de transação (<code>_delta_log</code>) por trás do Parquet — cada escrita vira uma <strong>versão nova, atômica</strong>. Isso dá exatamente o que faltava: <code>MERGE</code>/<code>UPDATE</code>/<code>DELETE</code> com garantia ACID, e <strong>time travel</strong> — a capacidade real de voltar para qualquer versão anterior da tabela.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -285,6 +304,116 @@ spark.sql(<span class="str">"INSERT INTO vendas VALUES (1, 99.90)"</span>)</pre>
 <span class="cm"># com Derby, a sessão 2 nem conseguiria abrir. Com MySQL, funciona.</span></pre>
         </div>
       </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">06</span><span class="step-title">Adicionar Delta Lake ao Spark</span></div>
+        <div class="step-body">Duas configurações extras habilitam o formato Delta — depois disso, toda tabela criada com <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">USING DELTA</code> passa a ter transação ACID e versionamento automático.</div>
+        <div class="snippet">
+          <div class="snippet-title">spark-defaults.conf — acrescentar</div>
+          <pre>spark.jars.packages                      <span class="str">io.delta:delta-spark_2.12:3.2.0</span>
+spark.sql.extensions                     <span class="str">io.delta.sql.DeltaSparkSessionExtension</span>
+spark.sql.catalog.spark_catalog          <span class="str">org.apache.spark.sql.delta.catalog.DeltaCatalog</span></pre>
+        </div>
+        <div class="snippet">
+          <div class="snippet-title">pyspark — recriando a tabela em Delta</div>
+          <pre>spark.sql(<span class="str">"""
+    CREATE TABLE vendas (id INT, valor DOUBLE)
+    USING DELTA
+    LOCATION 's3a://warehouse/vendas'
+"""</span>)</pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">07</span><span class="step-title">Provar o rollback de verdade</span></div>
+        <div class="step-body">O teste que mostra o ganho real: gerar um "erro de produção", e voltar no tempo sem precisar reprocessar nada.</div>
+        <div class="snippet">
+          <div class="snippet-title">pyspark — o "oops"</div>
+          <pre>spark.sql(<span class="str">"INSERT INTO vendas VALUES (1, 99.90), (2, 150.00)"</span>)
+
+<span class="cm"># alguém roda um UPDATE errado em produção</span>
+spark.sql(<span class="str">"UPDATE vendas SET valor = 0"</span>)  <span class="cm"># zerou tudo, por engano</span></pre>
+        </div>
+        <div class="snippet">
+          <div class="snippet-title">pyspark — o rollback</div>
+          <pre><span class="cm"># ver o histórico de versões da tabela</span>
+spark.sql(<span class="str">"DESCRIBE HISTORY vendas"</span>).show()
+
+<span class="cm"># consultar como estava ANTES do erro, sem restaurar nada ainda</span>
+spark.sql(<span class="str">"SELECT * FROM vendas VERSION AS OF 1"</span>).show()
+
+<span class="cm"># restaurar a tabela de verdade para aquela versão -- o "rollback"</span>
+spark.sql(<span class="str">"RESTORE TABLE vendas TO VERSION AS OF 1"</span>)</pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">08</span><span class="step-title">Interface em Streamlit</span></div>
+        <div class="step-body">Sem precisar subir uma sessão Spark inteira só pra visualizar — a biblioteca <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">deltalake</code> (bindings Rust) lê a tabela direto do MinIO, leve o suficiente para uma interface web simples.</div>
+        <div class="snippet">
+          <div class="snippet-title">bash</div>
+          <pre><span class="kw">pip</span> install streamlit deltalake pandas</pre>
+        </div>
+        <div class="snippet">
+          <div class="snippet-title">app.py</div>
+          <pre><span class="kw">import</span> streamlit <span class="kw">as</span> st
+<span class="kw">import</span> os
+<span class="kw">from</span> deltalake <span class="kw">import</span> DeltaTable
+
+os.environ[<span class="str">"AWS_ACCESS_KEY_ID"</span>] = <span class="str">"minioadmin"</span>
+os.environ[<span class="str">"AWS_SECRET_ACCESS_KEY"</span>] = <span class="str">"minioadmin"</span>
+os.environ[<span class="str">"AWS_ENDPOINT_URL"</span>] = <span class="str">"http://localhost:9000"</span>
+os.environ[<span class="str">"AWS_ALLOW_HTTP"</span>] = <span class="str">"true"</span>
+
+st.title(<span class="str">"Vendas — Lakehouse local"</span>)
+
+dt = DeltaTable(<span class="str">"s3://warehouse/vendas"</span>)
+versao = st.select_slider(
+    <span class="str">"Versão (time travel)"</span>,
+    options=<span class="kw">list</span>(<span class="kw">range</span>(dt.version() + 1)),
+    value=dt.version(),
+)
+
+dt_versionada = DeltaTable(<span class="str">"s3://warehouse/vendas"</span>, version=versao)
+st.dataframe(dt_versionada.to_pandas())
+st.caption(<span class="str">f"Exibindo versão {versao} de {dt.version()}"</span>)</pre>
+        </div>
+        <div class="snippet">
+          <div class="snippet-title">bash — subir a interface</div>
+          <pre><span class="kw">streamlit</span> run app.py</pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">09</span><span class="step-title">Consultar via DBeaver (ou qualquer cliente SQL)</span></div>
+        <div class="step-body">Streamlit é ótimo pra visualização fixa, mas analista de negócio geralmente quer SQL livre, num cliente que já conhece. Isso exige uma peça diferente do Hive Metastore Thrift (que só serve metadado): o <strong>Spark Thrift Server</strong>, que expõe o Spark inteiro via JDBC/ODBC.</div>
+        <div class="snippet">
+          <div class="snippet-title">bash — subir o Spark Thrift Server</div>
+          <pre><span class="cm"># usa a mesma config do spark-defaults.conf já configurada</span>
+$SPARK_HOME/sbin/start-thriftserver.sh \
+  --hiveconf hive.server2.thrift.port=10000 \
+  --hiveconf hive.server2.thrift.bind.host=0.0.0.0</pre>
+        </div>
+        <div class="snippet">
+          <div class="snippet-title">DBeaver — configuração da conexão</div>
+          <pre><span class="cm"># Nova Conexão → Apache Hive (o driver do Hive fala com Spark Thrift Server)</span>
+Host:      <span class="str">localhost</span>
+Porta:     <span class="str">10000</span>
+Banco:     <span class="str">default</span>
+Usuário:   <span class="str">(deixe em branco ou "anonymous")</span>
+
+<span class="cm"># DBeaver baixa o driver JDBC do Hive automaticamente na primeira conexão</span></pre>
+        </div>
+        <div class="snippet">
+          <div class="snippet-title">DBeaver — SQL editor, já enxergando o catálogo do MySQL</div>
+          <pre><span class="kw">SHOW</span> TABLES;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> vendas <span class="kw">VERSION</span> <span class="kw">AS</span> <span class="kw">OF</span> 1;
+<span class="cm">-- time travel funciona igual, direto do DBeaver, sem PySpark nenhum</span></pre>
+        </div>
+        <div class="note" style="margin-top: 16px;">
+          Diferença importante: Hive Metastore Thrift (porta 9083) só serve <strong>metadado</strong> — schema, localização de tabela. Spark Thrift Server (porta 10000) executa <strong>SQL de verdade</strong> — é ele quem o DBeaver precisa, não o metastore diretamente.
+        </div>
+      </li>
     </ol>
 
     <div class="note">
@@ -298,7 +427,7 @@ spark.sql(<span class="str">"INSERT INTO vendas VALUES (1, 99.90)"</span>)</pre>
     <div class="statusbar">
       <span><span class="ok">●</span> tema: ambiente de dados local</span>
       <span>·</span>
-      <span>stack: spark · minio · hive metastore · mysql · thrift</span>
+      <span>stack: spark · minio · hive metastore · mysql · delta lake · streamlit · thrift server</span>
       <span>·</span>
       <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
     </div>
