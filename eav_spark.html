@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — EAV sem PIVOT: complex data types no Spark</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="EAV sem PIVOT: como complex data type resolve o que 3 tabelas SQL não resolviam">
+<meta property="og:description" content="Do modelo Entity-Attribute-Value clássico (produto, dicionário de coluna, valor) ao MapType/Struct nativo do Spark — sem transpose caro, sem schema fixo.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_eav_spark.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/eav_spark.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_eav_spark.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 620px; margin: 0 0 36px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  /* DIFF WINDOW (signature element) */
+  .code-window { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 20px 60px -25px rgba(0,0,0,0.6); margin-bottom: 16px; }
+  .code-titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .code-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .code-dot.r { background: #4a3530; } .code-dot.y { background: #4a4230; } .code-dot.g { background: #304a3a; }
+  .code-filename { margin-left: 8px; font-size: 12.5px; color: var(--text-faint); }
+  .code-body { font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.85; padding: 20px 0; overflow-x: auto; }
+  .code-line { padding: 0 20px; white-space: pre; display: block; }
+  .code-line.rm { background: rgba(193,80,58,0.10); color: #d99184; border-left: 3px solid var(--rust); padding-left: 17px; }
+  .code-line.add { background: rgba(95,175,160,0.10); color: #9bd4c8; border-left: 3px solid var(--mint); padding-left: 17px; }
+  .code-line.blank { height: 10px; }
+  .code-line:not(.rm):not(.add):not(.blank) { padding-left: 20px; color: var(--text-faint); }
+
+  /* PLAIN CODE BLOCK (no diff coloring, just syntax accents) */
+  .snippet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin: 20px 0; }
+  .snippet-title { padding: 10px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; }
+  .snippet pre { margin: 0; padding: 18px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.75; overflow-x: auto; color: var(--text-muted); }
+  .snippet .kw { color: var(--mint); }
+  .snippet .str { color: var(--amber); }
+  .snippet .cm { color: var(--text-faint); font-style: italic; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .cs-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .cs-label { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; margin-bottom: 14px; }
+  .cs-card.challenge .cs-label { color: var(--rust); }
+  .cs-card.solution .cs-label { color: var(--mint); }
+  .cs-card p { color: var(--text-muted); font-size: 14.5px; margin: 0; }
+  @media (max-width: 620px) { .cs-grid { grid-template-columns: 1fr; } }
+
+  .fn-table { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .fn-row { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--line); align-items: center; }
+  .fn-row:first-child { border-top: none; }
+  .fn-name { font-family: 'IBM Plex Mono', monospace; color: var(--mint); font-size: 13.5px; }
+  .fn-desc { color: var(--text-muted); font-size: 13.5px; }
+  @media (max-width: 620px) { .fn-row { grid-template-columns: 1fr; gap: 4px; } }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Padrão de Dados · EAV · Spark · Complex Types</div>
+    <h1>EAV sem PIVOT: o problema que 3 tabelas nunca resolveram de graça</h1>
+    <p class="lede">Modelar atributo dinâmico de produto em SQL relacional sempre exigiu <strong>Entity-Attribute-Value</strong> — e o preço de "montar a tabela de volta" era um <code style="font-family:'IBM Plex Mono',monospace;background:var(--surface);padding:2px 6px;border-radius:4px;color:var(--mint);">PIVOT</code> caro, com schema que precisa ser conhecido antes de rodar. Complex data type no Spark resolve isso sem transpose nenhum.</p>
+
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+        <span class="code-filename">modelo_eav.diff</span>
+      </div>
+      <div class="code-body">
+        <span class="code-line rm">- tb_produto (id, nome)</span>
+        <span class="code-line rm">- tb_dicionario_coluna (id, nome, tipo)</span>
+        <span class="code-line rm">- tb_valor (id_produto, id_coluna, valor)</span>
+        <span class="code-line rm">- -- PIVOT dinâmico exige SQL montado em runtime</span>
+        <span class="code-line blank"></span>
+        <span class="code-line add">+ df_produto: id, nome, atributos: MapType&lt;String, String&gt;</span>
+        <span class="code-line add">+ -- sem PIVOT, sem schema fixo, sem tabela extra</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="problema">
+  <div class="wrap">
+    <div class="eyebrow">O problema</div>
+    <h2>Por que EAV em SQL relacional sempre doeu</h2>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Modelo clássico</div>
+        <p>Três tabelas separadas — produto, dicionário de coluna, valor — permitem atributo dinâmico por produto sem alterar schema. Mas "montar" a visão tabular de volta exige <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">PIVOT</code>, que precisa saber as colunas de saída <strong>antes</strong> de executar — geralmente resolvido com SQL dinâmico montado em runtime, caro e frágil.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">Complex data type</div>
+        <p>O atributo dinâmico vive dentro da própria linha, como <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">MapType</code> ou <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">Array&lt;Struct&gt;</code>. Não existe mais transpose — <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">explode()</code> e acesso por chave resolvem sob demanda, sem nunca precisar de schema fixo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="exemplos">
+  <div class="wrap">
+    <div class="eyebrow">Na prática</div>
+    <h2>Os dois sentidos: explodir e reagrupar</h2>
+    <p class="section-lede">O ganho real aparece quando você precisa ir e voltar entre formato "largo" (uma linha por produto) e "longo" (uma linha por atributo) — sem nunca escrever um PIVOT.</p>
+
+    <div class="snippet">
+      <div class="snippet-title">explode() — de MapType para formato longo</div>
+      <pre><span class="kw">df_long</span> = df_map.select(
+    <span class="str">"id_produto"</span>, <span class="str">"nome"</span>,
+    F.explode(<span class="str">"atributos"</span>).alias(<span class="str">"nome_coluna"</span>, <span class="str">"valor"</span>)
+)
+<span class="cm"># uma linha por atributo, sem tabela de dicionário separada</span></pre>
+    </div>
+
+    <div class="snippet">
+      <div class="snippet-title">map_from_entries() — o "pivot dinâmico" sem PIVOT</div>
+      <pre><span class="kw">df_reagrupado</span> = (
+    df_long
+    .groupBy(<span class="str">"id_produto"</span>, <span class="str">"nome"</span>)
+    .agg(F.map_from_entries(
+        F.collect_list(F.struct(<span class="str">"nome_coluna"</span>, <span class="str">"valor"</span>))
+    ).alias(<span class="str">"atributos"</span>))
+)
+<span class="cm"># volta pro formato largo -- funciona com QUALQUER conjunto</span>
+<span class="cm"># de atributos, mesmo diferente entre produtos, sem PIVOT</span></pre>
+    </div>
+  </div>
+</section>
+
+<section class="funcoes">
+  <div class="wrap">
+    <div class="eyebrow">Referência rápida</div>
+    <h2>Funções nativas do Spark para complex type</h2>
+
+    <div class="fn-table">
+      <div class="fn-row">
+        <div class="fn-name">map_keys / map_values</div>
+        <div class="fn-desc">Lista as chaves ou valores de um MapType — útil para inspecionar quais atributos um produto tem, sem saber antecipadamente.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">map_contains_key</div>
+        <div class="fn-desc">Filtra linhas onde um atributo específico existe — equivalente a um WHERE condicional no modelo EAV antigo, sem JOIN.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">element_at</div>
+        <div class="fn-desc">Acessa uma chave específica do mapa de forma segura — retorna NULL se não existir, sem lançar erro.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">transform_values</div>
+        <div class="fn-desc">Aplica uma função a todos os valores do mapa de uma vez — por exemplo, normalizar texto, sem precisar explodir e reagrupar.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">try_cast</div>
+        <div class="fn-desc">Conversão de tipo que retorna NULL em vez de lançar exceção — essencial ao converter valor de atributo dinâmico, onde tipo real pode variar por linha.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      Atenção real de implementação: em <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">when().otherwise()</code>, o Spark tenta unificar o tipo das duas branches — se uma vira decimal e a outra continua string, ele tenta converter tudo, e quebra em valores que nunca deveriam ser numéricos. A correção é usar <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">try_cast</code> em vez de <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">cast</code>, e omitir o <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">otherwise()</code> quando o tipo de destino diverge.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: modelagem de dados</span>
+      <span>·</span>
+      <span>stack: pyspark · spark sql · maptype · structtype</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
