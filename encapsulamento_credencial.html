@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — Encapsular credencial: o padrão que a proliferação de bibliotecas exige</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Encapsular credencial: o padrão que ninguém pensa até rotacionar a primeira senha">
+<meta property="og:description" content="Bibliotecas leves em Rust (Polars, delta-rs, DataFusion) multiplicam pontos de acesso a dado — e cada um vira um lugar a mais para caçar credencial na hora de rotacionar.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_encapsulamento_credencial.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/encapsulamento_credencial.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_encapsulamento_credencial.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 620px; margin: 0 0 36px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  /* DIFF WINDOW (signature element) */
+  .code-window { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 20px 60px -25px rgba(0,0,0,0.6); margin-bottom: 16px; }
+  .code-titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .code-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .code-dot.r { background: #4a3530; } .code-dot.y { background: #4a4230; } .code-dot.g { background: #304a3a; }
+  .code-filename { margin-left: 8px; font-size: 12.5px; color: var(--text-faint); }
+  .code-body { font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.85; padding: 20px 0; overflow-x: auto; }
+  .code-line { padding: 0 20px; white-space: pre; display: block; }
+  .code-line.rm { background: rgba(193,80,58,0.10); color: #d99184; border-left: 3px solid var(--rust); padding-left: 17px; }
+  .code-line.add { background: rgba(95,175,160,0.10); color: #9bd4c8; border-left: 3px solid var(--mint); padding-left: 17px; }
+  .code-line.blank { height: 10px; }
+  .code-line:not(.rm):not(.add):not(.blank) { padding-left: 20px; color: var(--text-faint); }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  .problema p { color: var(--text-muted); max-width: 640px; }
+  .problema p + p { margin-top: 16px; }
+  .problema strong { color: var(--text); font-weight: 500; }
+
+  /* SNIPPET (código completo, não diff) */
+  .snippet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin: 16px 0; }
+  .snippet-title { padding: 10px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; }
+  .snippet pre { margin: 0; padding: 18px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.75; overflow-x: auto; color: var(--text-muted); }
+  .snippet .kw { color: var(--mint); }
+  .snippet .str { color: var(--amber); }
+  .snippet .cm { color: var(--text-faint); font-style: italic; }
+
+  /* BENEFITS diff-list */
+  .diff-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .diff-col { padding: 24px; }
+  .diff-col.out { background: rgba(193,80,58,0.05); border-right: 1px solid var(--line); }
+  .diff-col.in { background: rgba(95,175,160,0.05); }
+  .diff-col-label { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; font-weight: 600; }
+  .diff-col.out .diff-col-label { color: var(--rust); }
+  .diff-col.in .diff-col-label { color: var(--mint); }
+  .diff-item { display: flex; gap: 10px; font-size: 14.5px; color: var(--text-muted); padding: 9px 0; }
+  .diff-item .marker { font-family: 'IBM Plex Mono', monospace; font-weight: 600; flex-shrink: 0; }
+  .diff-col.out .marker { color: var(--rust); }
+  .diff-col.in .marker { color: var(--mint); }
+  @media (max-width: 620px) { .diff-list { grid-template-columns: 1fr; } .diff-col.out { border-right: none; border-bottom: 1px solid var(--line); } }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Boas Práticas · Segurança · Arquitetura de Código</div>
+    <h1>Encapsular credencial: o padrão que ninguém pensa até rotacionar a primeira senha</h1>
+    <p class="lede">Bibliotecas leves em Rust — Polars, delta-rs, DataFusion — tornaram trivial acessar dado direto, sem precisar de um motor pesado por trás. Só que cada ponto novo de acesso é <strong>mais um lugar pra caçar credencial</strong> na hora de rotacionar.</p>
+
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+        <span class="code-filename">credencial.diff</span>
+      </div>
+      <div class="code-body">
+        <span class="code-line rm">- # cada script repete isso, sem saber dos outros</span>
+        <span class="code-line rm">- os.environ["AWS_ACCESS_KEY_ID"] = "minioadmin"</span>
+        <span class="code-line rm">- os.environ["AWS_SECRET_ACCESS_KEY"] = "minioadmin"</span>
+        <span class="code-line blank"></span>
+        <span class="code-line add">+ from credenciais import configurar_acesso_lakehouse</span>
+        <span class="code-line add">+ configurar_acesso_lakehouse()</span>
+        <span class="code-line add">+ # rotação = mudar em UM lugar, não em N scripts</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="problema">
+  <div class="wrap">
+    <div class="eyebrow">O problema</div>
+    <h2>Ferramenta leve, ponto de acesso pesado de manter</h2>
+    <p>Quando o acesso a dado passava só pelo Spark, a credencial vivia num lugar só — configurada uma vez na sessão, ponto final. Mas bibliotecas modernas em Rust tornaram trivial acessar Delta Lake, Parquet ou banco direto de qualquer script pequeno: um notebook, um app Streamlit, uma função Lambda.</p>
+    <p><strong>Cada um desses pontos novos, se configurado de forma independente, vira mais um lugar onde a credencial precisa ser encontrada e trocada</strong> quando chega a hora de rotacionar por segurança. É o mesmo padrão de risco de credencial duplicada e sem dono que aparece em qualquer ambiente sem essa disciplina — só que na ponta de consumo, não na ponta de acesso a sistema externo.</p>
+  </div>
+</section>
+
+<section class="solucao">
+  <div class="wrap">
+    <div class="eyebrow">O padrão</div>
+    <h2>Um módulo, uma fonte de verdade</h2>
+    <p class="section-lede">Encapsular o acesso à credencial atrás de uma função única — o resto do código nunca precisa saber de onde ela vem, nem como é obtida.</p>
+
+    <div class="snippet">
+      <div class="snippet-title">credenciais.py — único lugar que conhece a origem da credencial</div>
+      <pre><span class="kw">import</span> os
+<span class="kw">from</span> functools <span class="kw">import</span> lru_cache
+
+@lru_cache(maxsize=<span class="str">1</span>)
+<span class="kw">def</span> configurar_acesso_lakehouse():
+    <span class="cm">"""
+    Única função que sabe de onde vem a credencial.
+    Rotação = mudar aqui, uma vez. Nada mais no projeto precisa saber como.
+    """</span>
+    os.environ[<span class="str">"AWS_ACCESS_KEY_ID"</span>] = _buscar_secret(<span class="str">"minio_access_key"</span>)
+    os.environ[<span class="str">"AWS_SECRET_ACCESS_KEY"</span>] = _buscar_secret(<span class="str">"minio_secret_key"</span>)
+    os.environ[<span class="str">"AWS_ENDPOINT_URL"</span>] = _buscar_secret(<span class="str">"minio_endpoint"</span>)
+
+<span class="kw">def</span> _buscar_secret(chave: <span class="kw">str</span>) -> <span class="kw">str</span>:
+    <span class="cm"># aqui entra Secret Scope, Vault, ou o cofre da empresa —</span>
+    <span class="cm"># o resto do código nunca precisa saber qual é</span>
+    ...</pre>
+    </div>
+
+    <div class="snippet">
+      <div class="snippet-title">app.py — código de negócio, livre de credencial</div>
+      <pre><span class="kw">from</span> credenciais <span class="kw">import</span> configurar_acesso_lakehouse
+<span class="kw">from</span> deltalake <span class="kw">import</span> DeltaTable
+
+configurar_acesso_lakehouse()
+dt = DeltaTable(<span class="str">"s3://warehouse/vendas"</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<section class="beneficios">
+  <div class="wrap">
+    <div class="eyebrow">O que isso entrega</div>
+    <h2>Quatro ganhos de um só padrão</h2>
+
+    <div class="diff-list">
+      <div class="diff-col out">
+        <div class="diff-col-label">Sem encapsulamento</div>
+        <div class="diff-item"><span class="marker">−</span>Rotação exige caçar credencial em N scripts</div>
+        <div class="diff-item"><span class="marker">−</span>Cada notebook decide como acessar a biblioteca</div>
+        <div class="diff-item"><span class="marker">−</span>Lógica de negócio misturada com detalhe de acesso</div>
+        <div class="diff-item"><span class="marker">−</span>Auditoria não tem onde procurar</div>
+      </div>
+      <div class="diff-col in">
+        <div class="diff-col-label">Com encapsulamento</div>
+        <div class="diff-item"><span class="marker">+</span>Rotação muda em um único módulo</div>
+        <div class="diff-item"><span class="marker">+</span>Troca de biblioteca por trás não afeta quem consome</div>
+        <div class="diff-item"><span class="marker">+</span>Código de negócio limpo, sem detalhe de credencial</div>
+        <div class="diff-item"><span class="marker">+</span>"Quem acessa produção?" tem resposta única</div>
+      </div>
+    </div>
+
+    <div class="note">
+      A própria razão dessas bibliotecas serem rápidas (Rust por trás, sem overhead de JVM) é o que as torna atrativas de usar em vários lugares pequenos ao mesmo tempo — e é essa proliferação de pontos de uso que torna esse padrão estrutural, não opcional.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: arquitetura &amp; segurança de código</span>
+      <span>·</span>
+      <span>stack: python · rust (polars, delta-rs, datafusion) · secret management</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

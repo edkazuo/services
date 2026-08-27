@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — Rust compilado como biblioteca Python: estrutura de um wheel</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rust compilado como wheel Python: o próximo nível de encapsulamento">
+<meta property="og:description" content="Quando esconder a lógica atrás de um módulo Python não é suficiente — como PyO3 + maturin transformam Rust em biblioteca instalável via pip, com o código-fonte fora de alcance.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_rust_wheel.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/rust_wheel.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_rust_wheel.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 620px; margin: 0 0 24px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  .disclaimer-banner {
+    border: 1px solid var(--amber); border-radius: var(--radius);
+    padding: 14px 18px; background: rgba(231,169,62,0.08);
+    font-size: 13.5px; color: var(--text-muted); margin-bottom: 32px;
+  }
+  .disclaimer-banner strong { color: var(--amber); }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .cs-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .cs-label { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; margin-bottom: 14px; }
+  .cs-card.challenge .cs-label { color: var(--rust); }
+  .cs-card.solution .cs-label { color: var(--mint); }
+  .cs-card p { color: var(--text-muted); font-size: 14.5px; margin: 0; }
+  .cs-card code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--mint); }
+  @media (max-width: 620px) { .cs-grid { grid-template-columns: 1fr; } }
+
+  /* STEPS */
+  .steps { list-style: none; padding: 0; margin: 0; }
+  .step { padding: 28px 0; border-top: 1px solid var(--line); }
+  .step:first-child { border-top: none; padding-top: 0; }
+  .step-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .step-num { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-weight: 700; font-size: 15px; }
+  .step-title { font-weight: 600; font-size: 16px; }
+  .step-body { color: var(--text-muted); font-size: 14px; max-width: 620px; margin-bottom: 14px; }
+
+  .snippet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin: 12px 0; }
+  .snippet-title { padding: 9px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-size: 11.5px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; display: flex; justify-content: space-between; align-items: center; }
+  .snippet-title .flag { color: var(--amber); font-weight: 600; }
+  .snippet pre { margin: 0; padding: 16px 18px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; color: var(--text-muted); }
+  .snippet .kw { color: var(--mint); }
+  .snippet .str { color: var(--amber); }
+  .snippet .cm { color: var(--text-faint); font-style: italic; }
+  .snippet .ty { color: #9bb8d9; }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Rust · PyO3 · Maturin · Wheel</div>
+    <h1>Quando encapsular em Python não basta</h1>
+    <p class="lede">Um módulo Python esconde a lógica de quem <strong>usa</strong> a biblioteca — mas o código-fonte continua ali, legível, para quem tiver acesso ao repositório. Compilar essa lógica em Rust e distribuir como wheel tira o código-fonte de circulação: só o binário chega a quem consome.</p>
+
+    <div class="disclaimer-banner">
+      <strong>Nota:</strong> todo código nesta página é <strong>ilustrativo e simplificado</strong> — propositalmente incompleto, não compila como está, e não reflete nenhuma implementação real. O objetivo é mostrar a estrutura do processo, não fornecer um exemplo pronto para reprodução.
+    </div>
+  </div>
+</header>
+
+<section class="por-que">
+  <div class="wrap">
+    <div class="eyebrow">Por que ir além do módulo Python</div>
+    <h2>Dois níveis de encapsulamento, dois níveis de exposição</h2>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Módulo Python puro</div>
+        <p>Esconde a lógica de quem <strong>chama</strong> a função — mas o arquivo <code>.py</code> continua legível por qualquer pessoa com acesso ao código-fonte. Bom para organização, insuficiente quando a lógica interna (não só a credencial) precisa ficar fora de vista.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">Extensão compilada (Rust + PyO3)</div>
+        <p>O que chega a quem instala via <code>pip</code> é um binário <code>.so</code>/<code>.pyd</code> — sem código-fonte legível junto. A lógica de descriptografia, validação e regra de negócio interna fica <strong>fora de alcance</strong> de quem só tem o pacote instalado.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="passo-a-passo">
+  <div class="wrap">
+    <div class="eyebrow">Estrutura do processo</div>
+    <h2>Do código Rust ao pacote instalável via pip</h2>
+
+    <ol class="steps">
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">01</span><span class="step-title">Estrutura do projeto</span></div>
+        <div class="step-body">Um projeto Rust configurado como biblioteca dinâmica, com o crate PyO3 habilitado para gerar bindings Python.</div>
+        <div class="snippet">
+          <div class="snippet-title">Cargo.toml <span class="flag">— ilustrativo</span></div>
+          <pre>[package]
+name = <span class="str">"minha_lib"</span>
+version = <span class="str">"0.1.0"</span>
+edition = <span class="str">"2021"</span>
+
+[lib]
+name = <span class="str">"_native"</span>
+crate-type = [<span class="str">"cdylib"</span>]
+
+[dependencies]
+pyo3 = { version = <span class="str">"0.22"</span>, features = [<span class="str">"extension-module"</span>] }
+<span class="cm"># demais dependências (criptografia, parsing) entrariam aqui</span></pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">02</span><span class="step-title">Esqueleto da lógica interna</span></div>
+        <div class="step-body">Estrutura simplificada mostrando o padrão: receber um segredo protegido, processar internamente, e expor <strong>só o resultado seguro</strong> — nunca o dado sensível bruto.</div>
+        <div class="snippet">
+          <div class="snippet-title">src/lib.rs <span class="flag">— esqueleto ilustrativo, não compilável</span></div>
+          <pre><span class="kw">use</span> pyo3::prelude::*;
+
+<span class="cm">// segredo nunca em texto puro no código-fonte</span>
+<span class="kw">const</span> SEGREDO_PROTEGIDO: &<span class="ty">str</span> = <span class="str">"..."</span>;
+
+<span class="cm">// #[pyfunction] expõe esta função para o lado Python</span>
+#[pyfunction]
+<span class="kw">fn</span> obter_info_segura(py: Python) -> PyResult&lt;PyObject&gt; {
+    <span class="kw">let</span> dado_interno = processar_segredo(SEGREDO_PROTEGIDO)?;
+
+    <span class="cm">// expõe apenas campos não sensíveis do resultado</span>
+    <span class="kw">let</span> resultado = extrair_campos_seguros(py, &dado_interno)?;
+    Ok(resultado)
+}
+
+<span class="cm">// lógica interna -- nunca exportada, invisível para quem consome o pacote</span>
+<span class="kw">fn</span> processar_segredo(entrada: &<span class="ty">str</span>) -> PyResult&lt;<span class="ty">String</span>&gt; {
+    <span class="cm">// validação, descriptografia, chamada externa, etc.</span>
+    <span class="kw">todo!</span>()
+}
+
+<span class="cm">// registro do módulo -- só o que está listado aqui fica acessível</span>
+#[pymodule]
+<span class="kw">fn</span> _native(m: &Bound&lt;PyModule&gt;) -> PyResult&lt;()&gt; {
+    m.add_function(wrap_pyfunction!(obter_info_segura, m)?)?;
+    Ok(())
+}</pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">03</span><span class="step-title">Compilar como wheel</span></div>
+        <div class="step-body"><code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">maturin</code> compila o Rust e empacota o binário resultante no formato wheel padrão do Python — o mesmo pipeline que usamos hoje mais cedo no GitHub Actions.</div>
+        <div class="snippet">
+          <div class="snippet-title">bash</div>
+          <pre><span class="kw">pip</span> install maturin
+<span class="kw">maturin</span> build --release
+<span class="cm"># gera target/wheels/minha_lib-0.1.0-*.whl</span></pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">04</span><span class="step-title">Wrapper Python fino</span></div>
+        <div class="step-body">O pacote instalado precisa de um <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">__init__.py</code> simples reexportando as funções do binário — é a única parte do pacote que continua sendo texto legível, e não contém lógica sensível nenhuma.</div>
+        <div class="snippet">
+          <div class="snippet-title">minha_lib/__init__.py</div>
+          <pre><span class="kw">from</span> ._native <span class="kw">import</span> obter_info_segura
+
+__all__ = [<span class="str">"obter_info_segura"</span>]</pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">05</span><span class="step-title">Instalar e consumir</span></div>
+        <div class="step-body">Do lado de quem usa, a experiência é idêntica a qualquer biblioteca Python normal — sem nenhuma pista de que a lógica interna está compilada.</div>
+        <div class="snippet">
+          <div class="snippet-title">bash + python</div>
+          <pre><span class="kw">pip</span> install target/wheels/minha_lib-*.whl</pre>
+        </div>
+        <div class="snippet">
+          <div class="snippet-title">app.py</div>
+          <pre><span class="kw">import</span> minha_lib
+info = minha_lib.obter_info_segura()
+<span class="cm"># quem chama não tem como ver como "obter_info_segura" funciona por dentro</span></pre>
+        </div>
+      </li>
+    </ol>
+
+    <div class="note">
+      Isso não substitui boa prática de gestão de segredo (cofre gerenciado, rotação, princípio de menor privilégio) — é uma camada adicional, que dificulta engenharia reversa casual do código-fonte, não uma garantia absoluta de segurança.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: rust &amp; empacotamento python</span>
+      <span>·</span>
+      <span>stack: rust · pyo3 · maturin · wheel</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
