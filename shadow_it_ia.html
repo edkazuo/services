@@ -70,26 +70,16 @@
   .diagram-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 24px 20px; margin: 8px 0 32px; overflow-x: auto; }
   .diagram-caption { font-size: 12.5px; color: var(--text-faint); text-align: center; margin-top: 14px; }
 
-  /* BENEFITS diff-list */
-  .diff-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-  .diff-col { padding: 24px; }
-  .diff-col.out { background: rgba(193,80,58,0.05); border-right: 1px solid var(--line); }
-  .diff-col.in { background: rgba(95,175,160,0.05); }
-  .diff-col-label { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; font-weight: 600; }
-  .diff-col.out .diff-col-label { color: var(--rust); }
-  .diff-col.in .diff-col-label { color: var(--mint); }
-  .diff-item { display: flex; gap: 10px; font-size: 14.5px; color: var(--text-muted); padding: 9px 0; }
-  .diff-item .marker { font-family: 'IBM Plex Mono', monospace; font-weight: 600; flex-shrink: 0; }
-  .diff-col.out .marker { color: var(--rust); }
-  .diff-col.in .marker { color: var(--mint); }
-  @media (max-width: 620px) { .diff-list { grid-template-columns: 1fr; } .diff-col.out { border-right: none; border-bottom: 1px solid var(--line); } }
-
   .fn-table { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
   .fn-row { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--line); align-items: center; }
   .fn-row:first-child { border-top: none; }
   .fn-name { font-family: 'IBM Plex Mono', monospace; color: var(--mint); font-size: 13.5px; }
   .fn-desc { color: var(--text-muted); font-size: 13.5px; }
+  .fn-row.sev .fn-name { color: var(--rust); }
   @media (max-width: 620px) { .fn-row { grid-template-columns: 1fr; gap: 4px; } }
+
+  .fn-group-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); margin: 28px 0 10px; }
+  .fn-group-label:first-child { margin-top: 0; }
 
   /* STEPS */
   .steps { list-style: none; padding: 0; margin: 0; }
@@ -156,6 +146,56 @@
         <p>Quem entende o processo de negócio já basta — a IA preenche a lacuna técnica, credencial incluída. O gargalo deixou de ser "saber programar" e virou "saber pedir".</p>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="causas">
+  <div class="wrap">
+    <div class="eyebrow">Duas raízes, mesmo resultado</div>
+    <h2>Nem sempre é malícia — às vezes é ausência de caminho</h2>
+    <p class="section-lede">Dá pra chegar no mesmo atalho por dois motivos bem diferentes, e isso muda como a organização deveria responder.</p>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Por desconhecimento</div>
+        <p>Quem resolve não pensa "isso é infraestrutura" — pensa "automatizei uma tarefa chata". Sem esse enquadramento mental, nunca ocorre perguntar pro time certo antes de começar.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">Por falta de política de plataforma</div>
+        <p>Às vezes a pessoa até sabe que devia pedir permissão, mas não existe canal, dono ou processo claro pra isso. Se o caminho certo não existe ou é lento demais, o atalho vira a única opção disponível.</p>
+      </div>
+    </div>
+
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+        <span class="code-filename">onde_o_codigo_mora.diff</span>
+      </div>
+      <div class="code-body">
+        <span class="code-line rm">- dev: GitHub Enterprise corporativo, secret scanning, review obrigatório</span>
+        <span class="code-line rm">- usuário de negócio automatizando com IA: nenhum git corporativo disponível</span>
+        <span class="code-line blank"></span>
+        <span class="code-line add">+ solução encontrada sozinho: repositório pessoal no GitHub</span>
+        <span class="code-line add">+ código de produção e credencial, sem scanning, sem review, sem dono</span>
+      </div>
+    </div>
+    <p style="color: var(--text-muted); font-size: 14.5px; max-width: 620px;">O ambiente pensado pra quem programa profissionalmente tem controle de sobra. Quem nunca precisou de git até ontem não tem opção nenhuma — e cria uma, sozinho, do jeito que dá.</p>
+
+    <div class="fn-table" style="margin-top: 24px;">
+      <div class="fn-row">
+        <div class="fn-name">28,65 milhões</div>
+        <div class="fn-desc">de segredos novos (senha, chave de API, token) foram encontrados hardcoded em repositórios públicos do GitHub só em 2025 — 34% a mais que no ano anterior (GitGuardian, State of Secrets Sprawl).</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">70%</div>
+        <div class="fn-desc">dos segredos vazados em 2022 continuavam ativos três anos depois — quase ninguém revoga depois que o vazamento acontece, o que transforma um erro pontual em exposição permanente.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">6x</div>
+        <div class="fn-desc">mais chance de um repositório privado conter segredo hardcoded do que um público — a sensação de "tá privado, tá seguro" relaxa exatamente o cuidado que deveria existir.</div>
+      </div>
+    </div>
+    <p style="color: var(--text-faint); font-size: 12.5px; margin-top: 10px;">Fonte: GitGuardian, State of Secrets Sprawl Report</p>
   </div>
 </section>
 
@@ -234,85 +274,37 @@
   </div>
 </section>
 
-<section class="causas">
-  <div class="wrap">
-    <div class="eyebrow">Duas raízes, mesmo resultado</div>
-    <h2>Nem sempre é malícia — às vezes é ausência de caminho</h2>
-    <p class="section-lede">Dá pra chegar no mesmo atalho por dois motivos bem diferentes, e isso muda como a organização deveria responder.</p>
-
-    <div class="cs-grid">
-      <div class="cs-card challenge">
-        <div class="cs-label">Por desconhecimento</div>
-        <p>Quem resolve não pensa "isso é infraestrutura" — pensa "automatizei uma tarefa chata". Sem esse enquadramento mental, nunca ocorre perguntar pro time certo antes de começar.</p>
-      </div>
-      <div class="cs-card solution">
-        <div class="cs-label">Por falta de política de plataforma</div>
-        <p>Às vezes a pessoa até sabe que devia pedir permissão, mas não existe canal, dono ou processo claro pra isso. Se o caminho certo não existe ou é lento demais, o atalho vira a única opção disponível.</p>
-      </div>
-    </div>
-
-    <div class="code-window">
-      <div class="code-titlebar">
-        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
-        <span class="code-filename">onde_o_codigo_mora.diff</span>
-      </div>
-      <div class="code-body">
-        <span class="code-line rm">- dev: GitHub Enterprise corporativo, secret scanning, review obrigatório</span>
-        <span class="code-line rm">- usuário de negócio automatizando com IA: nenhum git corporativo disponível</span>
-        <span class="code-line blank"></span>
-        <span class="code-line add">+ solução encontrada sozinho: repositório pessoal no GitHub</span>
-        <span class="code-line add">+ código de produção e credencial, sem scanning, sem review, sem dono</span>
-      </div>
-    </div>
-    <p style="color: var(--text-muted); font-size: 14.5px; max-width: 620px;">O ambiente pensado pra quem programa profissionalmente tem controle de sobra. Quem nunca precisou de git até ontem não tem opção nenhuma — e cria uma, sozinho, do jeito que dá.</p>
-  </div>
-</section>
-
 <section class="risco">
   <div class="wrap">
-    <div class="eyebrow">O que fica invisível</div>
+    <div class="eyebrow">O que fica invisível, e o que custa depois</div>
     <h2>Funciona no caminho feliz, sem noção de superfície de falha</h2>
-    <p class="section-lede">Quem aprendeu "um pouco de programação" com ajuda da IA sabe fazer funcionar. Não necessariamente sabe reconhecer quando algo já deu errado.</p>
+    <p class="section-lede">Quem aprendeu "um pouco de programação" com ajuda da IA sabe fazer funcionar. Não necessariamente sabe reconhecer quando algo já deu errado — e o preço disso só aparece quando alguém vai procurar o dono e não encontra.</p>
 
+    <div class="fn-group-label">No dia a dia</div>
     <div class="fn-table">
       <div class="fn-row">
         <div class="fn-name">Credencial permanente</div>
         <div class="fn-desc">Chave gerada uma vez, hardcoded no script, nunca rotacionada — porque ninguém pensou nisso como "infraestrutura" precisando de dono.</div>
       </div>
       <div class="fn-row">
-        <div class="fn-name">Rate limit</div>
-        <div class="fn-desc">Automação testada com volume pequeno estoura silenciosamente quando o dado cresce — sem tratamento de erro que a IA "esqueceu" de sugerir.</div>
-      </div>
-      <div class="fn-row">
-        <div class="fn-name">Dado sensível exposto</div>
-        <div class="fn-desc">Planilha ou pasta com dado corporativo compartilhada com uma identidade externa — service account de projeto pessoal, por exemplo — sem ninguém perceber que isso é acesso externo.</div>
-      </div>
-      <div class="fn-row">
         <div class="fn-name">Falha silenciosa</div>
-        <div class="fn-desc">Sem log padronizado, sem alerta — o problema só aparece quando alguém audita retroativamente ou quando já virou incidente.</div>
+        <div class="fn-desc">Rate limit estoura, schema muda, tratamento de erro que a IA "esqueceu" de sugerir — sem log padronizado, sem alerta, o problema só aparece em auditoria retroativa ou já como incidente.</div>
       </div>
       <div class="fn-row">
         <div class="fn-name">Revelação lenta</div>
         <div class="fn-desc">Sem fatura, sem contrato, sem atrito — o gatilho natural de exposição do Shadow IT clássico simplesmente não existe aqui.</div>
       </div>
     </div>
-  </div>
-</section>
 
-<section class="preco">
-  <div class="wrap">
-    <div class="eyebrow">Se der errado</div>
-    <h2>O preço não aparece na hora — aparece depois, e maior</h2>
-    <p class="section-lede">Enquanto funciona, o atalho parece grátis. O custo só some da conta quando alguém vai procurar quem é o dono, e não encontra.</p>
-
+    <div class="fn-group-label">Quando escala</div>
     <div class="fn-table">
+      <div class="fn-row sev">
+        <div class="fn-name">Perímetro poroso</div>
+        <div class="fn-desc">Misturar credencial de uso pessoal com acesso a sistema corporativo apaga a fronteira que protege o ambiente: se aquela conta pessoal for comprometida em qualquer outro serviço — senha reaproveitada, phishing fora do trabalho — o mesmo acesso vira porta de entrada pro dado da empresa, e a defesa corporativa não vê nada, porque monitora identidade corporativa, não pessoal.</div>
+      </div>
       <div class="fn-row">
         <div class="fn-name">Financeiro</div>
         <div class="fn-desc">Multa de LGPD se dado pessoal circular fora de ambiente controlado, sem contrato de processamento — e o custo de resposta a incidente costuma superar de longe o de ter feito certo desde o início.</div>
-      </div>
-      <div class="fn-row">
-        <div class="fn-name">Segurança</div>
-        <div class="fn-desc">Credencial fora de qualquer inventário, sem rotação, sobrevivendo à saída de quem a criou — ninguém sabe que ela ainda existe até uma auditoria ou um incidente forçarem a descoberta.</div>
       </div>
       <div class="fn-row">
         <div class="fn-name">Reputacional</div>
