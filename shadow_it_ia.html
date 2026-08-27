@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — A fronteira que ninguém está vigiando</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="A fronteira que ninguém está vigiando: Shadow IT na era da IA generativa">
+<meta property="og:description" content="Plataformas de IA derrubaram a barreira técnica de automatizar — e criaram um Shadow IT que demora muito mais tempo pra ser descoberto.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_shadow_it_ia.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/shadow_it_ia.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_shadow_it_ia.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 620px; margin: 0 0 36px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  /* DIFF WINDOW (signature element) */
+  .code-window { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 20px 60px -25px rgba(0,0,0,0.6); margin-bottom: 16px; }
+  .code-titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .code-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .code-dot.r { background: #4a3530; } .code-dot.y { background: #4a4230; } .code-dot.g { background: #304a3a; }
+  .code-filename { margin-left: 8px; font-size: 12.5px; color: var(--text-faint); }
+  .code-body { font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.85; padding: 20px 0; overflow-x: auto; }
+  .code-line { padding: 0 20px; white-space: pre; display: block; }
+  .code-line.rm { background: rgba(193,80,58,0.10); color: #d99184; border-left: 3px solid var(--rust); padding-left: 17px; }
+  .code-line.add { background: rgba(95,175,160,0.10); color: #9bd4c8; border-left: 3px solid var(--mint); padding-left: 17px; }
+  .code-line.blank { height: 10px; }
+  .code-line:not(.rm):not(.add):not(.blank) { padding-left: 20px; color: var(--text-faint); }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .cs-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .cs-label { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; margin-bottom: 14px; }
+  .cs-card.challenge .cs-label { color: var(--rust); }
+  .cs-card.solution .cs-label { color: var(--mint); }
+  .cs-card p { color: var(--text-muted); font-size: 14.5px; margin: 0; }
+  @media (max-width: 620px) { .cs-grid { grid-template-columns: 1fr; } }
+
+  /* DIAGRAM (illustrative, matches site palette) */
+  .diagram-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 24px 20px; margin: 8px 0 32px; overflow-x: auto; }
+  .diagram-caption { font-size: 12.5px; color: var(--text-faint); text-align: center; margin-top: 14px; }
+
+  /* BENEFITS diff-list */
+  .diff-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .diff-col { padding: 24px; }
+  .diff-col.out { background: rgba(193,80,58,0.05); border-right: 1px solid var(--line); }
+  .diff-col.in { background: rgba(95,175,160,0.05); }
+  .diff-col-label { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; font-weight: 600; }
+  .diff-col.out .diff-col-label { color: var(--rust); }
+  .diff-col.in .diff-col-label { color: var(--mint); }
+  .diff-item { display: flex; gap: 10px; font-size: 14.5px; color: var(--text-muted); padding: 9px 0; }
+  .diff-item .marker { font-family: 'IBM Plex Mono', monospace; font-weight: 600; flex-shrink: 0; }
+  .diff-col.out .marker { color: var(--rust); }
+  .diff-col.in .marker { color: var(--mint); }
+  @media (max-width: 620px) { .diff-list { grid-template-columns: 1fr; } .diff-col.out { border-right: none; border-bottom: 1px solid var(--line); } }
+
+  .fn-table { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .fn-row { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--line); align-items: center; }
+  .fn-row:first-child { border-top: none; }
+  .fn-name { font-family: 'IBM Plex Mono', monospace; color: var(--mint); font-size: 13.5px; }
+  .fn-desc { color: var(--text-muted); font-size: 13.5px; }
+  @media (max-width: 620px) { .fn-row { grid-template-columns: 1fr; gap: 4px; } }
+
+  /* STEPS */
+  .steps { list-style: none; padding: 0; margin: 0; }
+  .step { padding: 28px 0; border-top: 1px solid var(--line); }
+  .step:first-child { border-top: none; padding-top: 0; }
+  .step-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .step-num { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-weight: 700; font-size: 15px; }
+  .step-title { font-weight: 600; font-size: 16px; }
+  .step-body { color: var(--text-muted); font-size: 14px; max-width: 620px; }
+  .step-owner { display: inline-block; margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-faint); border: 1px solid var(--line); border-radius: 100px; padding: 4px 10px; }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Governança · Shadow IT · IA Generativa</div>
+    <h1>A fronteira que ninguém está vigiando</h1>
+    <p class="lede">Toda automação de negócio, até pouco tempo atrás, passava por um filtro natural: alguém precisava saber programar. Isso acabou — e o Shadow IT que nasce disso <strong>demora muito mais tempo pra ser descoberto</strong> do que o clássico.</p>
+
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+        <span class="code-filename">quem_automatiza.diff</span>
+      </div>
+      <div class="code-body">
+        <span class="code-line rm">- filtro: saber Python, entender API, configurar cron</span>
+        <span class="code-line rm">- rastro: fatura de cartão, contrato, SaaS aprovado</span>
+        <span class="code-line blank"></span>
+        <span class="code-line add">+ filtro: descrever o problema pra uma IA</span>
+        <span class="code-line add">+ rastro: nenhum — roda no Task Scheduler de alguém</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="problema">
+  <div class="wrap">
+    <div class="eyebrow">A inversão</div>
+    <h2>Conhecimento de domínio virou mais valioso que o técnico</h2>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Antes</div>
+        <p>A competência técnica era o filtro. Só quem sabia programar conseguia automatizar — e isso limitava naturalmente o volume de Shadow IT, mesmo sem nenhuma política escrita sobre o tema.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">Agora</div>
+        <p>Quem entende o processo de negócio já basta — a IA preenche a lacuna técnica, credencial incluída. O gargalo deixou de ser "saber programar" e virou "saber pedir".</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="diagrama">
+  <div class="wrap">
+    <div class="eyebrow">O caminho, ponta a ponta</div>
+    <h2>Da tarefa manual à automação sem dono</h2>
+    <p class="section-lede">O mesmo fluxo que empodera também é o que atrasa a descoberta: cada etapa parece pequena demais pra acionar qualquer alarme.</p>
+
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 780 300" role="img" aria-label="Fluxo do usuário até a automação sem governança">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#5b6673" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <style>
+          .db { font-family:'IBM Plex Mono',monospace; font-size:11px; fill:#5b6673; text-transform:uppercase; letter-spacing:0.04em; }
+          .dt { font-family:'IBM Plex Mono',monospace; font-size:13.5px; font-weight:600; fill:#edeff2; }
+          .ds { font-family:'IBM Plex Sans',sans-serif; font-size:11.5px; fill:#8d98a6; }
+          .arr { stroke:#5b6673; stroke-width:1; fill:none; }
+        </style>
+
+        <rect x="20" y="30" width="150" height="72" rx="8" fill="#171f28" stroke="#2a3540" stroke-width="1"/>
+        <text class="db" x="34" y="52">passo 1</text>
+        <text class="dt" x="34" y="72">Tarefa manual</text>
+        <text class="ds" x="34" y="90">"por que faço isso na mão?"</text>
+
+        <rect x="20" y="130" width="150" height="72" rx="8" fill="#171f28" stroke="#5fafa0" stroke-width="1"/>
+        <text class="db" x="34" y="152" fill="#5fafa0">passo 2</text>
+        <text class="dt" x="34" y="172">Pergunta pra IA</text>
+        <text class="ds" x="34" y="190">recebe código + credencial</text>
+
+        <rect x="315" y="130" width="150" height="72" rx="8" fill="#171f28" stroke="#e7a93e" stroke-width="1"/>
+        <text class="db" x="329" y="152" fill="#e7a93e">passo 3</text>
+        <text class="dt" x="329" y="172">Automação no ar</text>
+        <text class="ds" x="329" y="190">Task Scheduler / cron pessoal</text>
+
+        <rect x="610" y="130" width="150" height="72" rx="8" fill="#171f28" stroke="#c1503a" stroke-width="1"/>
+        <text class="db" x="624" y="152" fill="#c1503a">passo 4</text>
+        <text class="dt" x="624" y="172">Falha silenciosa</text>
+        <text class="ds" x="624" y="190">sem log, sem alerta, meses depois</text>
+
+        <path class="arr" d="M95 102 L95 130" marker-end="url(#arrow)"/>
+        <path class="arr" d="M170 166 L315 166" marker-end="url(#arrow)"/>
+        <path class="arr" d="M465 166 L610 166" marker-end="url(#arrow)"/>
+
+        <text class="db" x="34" y="240">nenhum passo aciona</text>
+        <text class="dt" x="34" y="260" fill="#8d98a6" style="font-weight:500;">TI · Segurança · Compras · Auditoria</text>
+        <line x1="20" y1="270" x2="760" y2="270" stroke="#2a3540" stroke-width="1" stroke-dasharray="4 4"/>
+        <text class="ds" x="20" y="290">diferente do Shadow IT clássico — sem fatura de cartão, sem domínio novo no proxy, sem atrito nenhum que force a exposição</text>
+      </svg>
+      <div class="diagram-caption">quatro passos, nenhum gatilho de exposição no meio do caminho</div>
+    </div>
+  </div>
+</section>
+
+<section class="risco">
+  <div class="wrap">
+    <div class="eyebrow">O que fica invisível</div>
+    <h2>Funciona no caminho feliz, sem noção de superfície de falha</h2>
+    <p class="section-lede">Quem aprendeu "um pouco de programação" com ajuda da IA sabe fazer funcionar. Não necessariamente sabe reconhecer quando algo já deu errado.</p>
+
+    <div class="fn-table">
+      <div class="fn-row">
+        <div class="fn-name">Credencial permanente</div>
+        <div class="fn-desc">Chave gerada uma vez, hardcoded no script, nunca rotacionada — porque ninguém pensou nisso como "infraestrutura" precisando de dono.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Rate limit</div>
+        <div class="fn-desc">Automação testada com volume pequeno estoura silenciosamente quando o dado cresce — sem tratamento de erro que a IA "esqueceu" de sugerir.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Dado sensível exposto</div>
+        <div class="fn-desc">Planilha ou pasta com dado corporativo compartilhada com uma identidade externa — service account de projeto pessoal, por exemplo — sem ninguém perceber que isso é acesso externo.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Falha silenciosa</div>
+        <div class="fn-desc">Sem log padronizado, sem alerta — o problema só aparece quando alguém audita retroativamente ou quando já virou incidente.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Revelação lenta</div>
+        <div class="fn-desc">Sem fatura, sem contrato, sem atrito — o gatilho natural de exposição do Shadow IT clássico simplesmente não existe aqui.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="resposta">
+  <div class="wrap">
+    <div class="eyebrow">O que funciona</div>
+    <h2>Um cofre e um checklist, não um curso de engenharia</h2>
+    <p class="section-lede">Não escala ensinar todo mundo a programar direito. Proibir só empurra mais fundo pra sombra. O caminho é reduzir o tempo entre criação e detecção.</p>
+
+    <ol class="steps">
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">01</span><span class="step-title">Auditoria proativa, não reativa</span></div>
+        <div class="step-body">Relatório periódico de compartilhamento externo (Drive, storage, repositórios) rodando em cadência fixa — não esperando alguém desconfiar. É a única forma de encurtar um gap que, sem gatilho natural, tende a durar trimestres.</div>
+        <span class="step-owner">Security / GRC</span>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">02</span><span class="step-title">Perímetro no ponto de compartilhamento</span></div>
+        <div class="step-body">O controle eficaz não fica na origem da automação (impossível de vigiar toda ferramenta de IA), fica no ponto onde o dado sai — regra de confiança organizacional no Drive/Workspace, não domínio de e-mail.</div>
+        <span class="step-owner">Colaboração + SRE/Platform</span>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">03</span><span class="step-title">Canal de promoção, não só bloqueio</span></div>
+        <div class="step-body">Um caminho leve pra alguém levar a automação que já criou sozinho e transformá-la em algo suportado — com incentivo, não só burocracia. Isso traz o que já existe pra luz, em vez de só impedir o próximo caso.</div>
+        <span class="step-owner">Plataforma / Enablement</span>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">04</span><span class="step-title">Educação sobre risco, não sobre sintaxe</span></div>
+        <div class="step-body">A pessoa não precisa aprender a programar direito. Precisa reconhecer três sinais: "isso toca dado sensível", "isso usa uma credencial" e "isso roda sem eu olhar" — qualquer um desses aciona o checklist.</div>
+        <span class="step-owner">Todos os times</span>
+      </li>
+    </ol>
+
+    <div class="note">
+      O ponto central não é técnico, é de modelo mental: ninguém pensa "estou fazendo Shadow IT" quando só quer automatizar uma tarefa chata. Enquanto esse enquadramento não existir, nenhum controle sozinho resolve — a resposta precisa reduzir o tempo até a descoberta, não tentar impedir a criação.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: governança &amp; segurança</span>
+      <span>·</span>
+      <span>stack: shadow it · ia generativa · gcp · google workspace</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
