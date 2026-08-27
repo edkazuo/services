@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — Datalake local do zero: Spark + MinIO + Hive Metastore</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Datalake local do zero: Spark + MinIO + Hive Metastore (MySQL, não Derby)">
+<meta property="og:description" content="Setup completo de ambiente Lakehouse local em Linux — e por que Derby, o metastore padrão do Hive, não serve para nada além de teste isolado de uma sessão.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_datalake_local.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/datalake_local.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_datalake_local.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 620px; margin: 0 0 36px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  /* ARCHITECTURE DIAGRAM (signature element) */
+  .diagram-window { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 20px 60px -25px rgba(0,0,0,0.6); }
+  .diagram-titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .diagram-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .diagram-dot.r { background: #4a3530; } .diagram-dot.y { background: #4a4230; } .diagram-dot.g { background: #304a3a; }
+  .diagram-filename { margin-left: 8px; font-size: 12.5px; color: var(--text-faint); }
+  .diagram-body { padding: 28px 24px; }
+  .diagram-body svg { width: 100%; height: auto; display: block; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  /* CHALLENGE / SOLUTION (Derby vs MySQL) */
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .cs-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .cs-label { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; margin-bottom: 14px; }
+  .cs-card.challenge .cs-label { color: var(--rust); }
+  .cs-card.solution .cs-label { color: var(--mint); }
+  .cs-card p { color: var(--text-muted); font-size: 14.5px; margin: 0; }
+  .cs-card code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--mint); }
+  @media (max-width: 620px) { .cs-grid { grid-template-columns: 1fr; } }
+
+  .error-box { border: 1px dashed var(--rust); border-radius: var(--radius); padding: 16px 20px; margin-top: 20px; background: rgba(193,80,58,0.06); }
+  .error-box .label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--rust); font-weight: 600; margin-bottom: 8px; }
+  .error-box pre { margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #d99184; white-space: pre-wrap; }
+
+  /* STEPS (genuine sequence) */
+  .steps { list-style: none; padding: 0; margin: 0; }
+  .step { padding: 28px 0; border-top: 1px solid var(--line); }
+  .step:first-child { border-top: none; padding-top: 0; }
+  .step-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .step-num { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-weight: 700; font-size: 15px; }
+  .step-title { font-weight: 600; font-size: 16px; }
+  .step-body { color: var(--text-muted); font-size: 14px; max-width: 620px; margin-bottom: 14px; }
+
+  /* CODE BLOCK */
+  .snippet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin: 12px 0; }
+  .snippet-title { padding: 9px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-size: 11.5px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; }
+  .snippet pre { margin: 0; padding: 16px 18px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.7; overflow-x: auto; color: var(--text-muted); }
+  .snippet .kw { color: var(--mint); }
+  .snippet .str { color: var(--amber); }
+  .snippet .cm { color: var(--text-faint); font-style: italic; }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Ambiente Local · Spark · MinIO · Hive Metastore</div>
+    <h1>Datalake local do zero, sem depender de nuvem</h1>
+    <p class="lede">Spark para processar, MinIO como storage compatível com S3, e Hive Metastore com <strong>MySQL</strong> — não Derby — como catálogo. Tudo rodando num único Linux, replicando a arquitetura de um Lakehouse de verdade em escala reduzida.</p>
+
+    <div class="diagram-window">
+      <div class="diagram-titlebar">
+        <span class="diagram-dot r"></span><span class="diagram-dot y"></span><span class="diagram-dot g"></span>
+        <span class="diagram-filename">arquitetura_local.svg</span>
+      </div>
+      <div class="diagram-body">
+        <svg viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#5b6673"/>
+            </marker>
+          </defs>
+
+          <rect x="20" y="90" width="150" height="60" rx="8" fill="#1f2933" stroke="#2a3540"/>
+          <text x="95" y="115" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">PROCESSAMENTO</text>
+          <text x="95" y="133" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600">Spark</text>
+
+          <rect x="300" y="20" width="160" height="60" rx="8" fill="#1f2933" stroke="#e7a93e"/>
+          <text x="380" y="45" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">CATÁLOGO (THRIFT)</text>
+          <text x="380" y="63" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600">Hive Metastore</text>
+
+          <rect x="300" y="160" width="160" height="60" rx="8" fill="#1f2933" stroke="#5fafa0"/>
+          <text x="380" y="185" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">STORAGE (S3A)</text>
+          <text x="380" y="203" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600">MinIO</text>
+
+          <rect x="580" y="20" width="160" height="60" rx="8" fill="#1f2933" stroke="#c1503a"/>
+          <text x="660" y="45" text-anchor="middle" fill="#8d98a6" font-family="IBM Plex Mono, monospace" font-size="10">METADADO (JDBC)</text>
+          <text x="660" y="63" text-anchor="middle" fill="#edeff2" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="600">MySQL</text>
+
+          <line x1="170" y1="105" x2="298" y2="55" stroke="#5b6673" stroke-width="1.5" marker-end="url(#arrow2)"/>
+          <line x1="170" y1="135" x2="298" y2="185" stroke="#5b6673" stroke-width="1.5" marker-end="url(#arrow2)"/>
+          <line x1="460" y1="50" x2="578" y2="50" stroke="#5b6673" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+          <text x="380" y="245" text-anchor="middle" fill="#5b6673" font-family="IBM Plex Sans, sans-serif" font-size="11">Spark fala com Hive Metastore (thrift) para resolver tabela, e direto com MinIO (S3A) para ler/gravar dado.</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="derby-vs-mysql">
+  <div class="wrap">
+    <div class="eyebrow">Por que não usar o padrão</div>
+    <h2>Derby funciona — até a segunda sessão tentar conectar</h2>
+    <p class="section-lede">O Hive já vem com um metastore embutido, sem precisar de nenhuma instalação extra. O problema não é ele funcionar mal — é ele ter uma limitação fundamental de design.</p>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Apache Derby (padrão)</div>
+        <p>Banco embarcado que roda <strong>dentro do próprio processo JVM</strong> que o inicia. Ele trava o diretório <code>metastore_db/</code> para uso exclusivo daquela JVM — a segunda sessão (outro notebook, outro <code>spark-submit</code>, outro usuário) simplesmente não consegue conectar.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">MySQL (ou PostgreSQL)</div>
+        <p>Banco relacional real, rodando como serviço independente, aceitando <strong>múltiplas conexões JDBC simultâneas</strong>. Qualquer número de sessões Spark, de máquinas diferentes, pode consultar e escrever metadado ao mesmo tempo — sem lock de arquivo.</p>
+      </div>
+    </div>
+
+    <div class="error-box">
+      <div class="label">O erro que aparece na prática</div>
+      <pre>ERROR XSDB6: Another instance of Derby may have already booted
+the database /home/user/metastore_db.</pre>
+    </div>
+  </div>
+</section>
+
+<section class="setup">
+  <div class="wrap">
+    <div class="eyebrow">Passo a passo</div>
+    <h2>Do zero ao primeiro SELECT</h2>
+
+    <ol class="steps">
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">01</span><span class="step-title">Pré-requisitos e MySQL</span></div>
+        <div class="step-body">Java (JDK 11), e o banco que vai substituir o Derby.</div>
+        <div class="snippet">
+          <div class="snippet-title">bash</div>
+          <pre><span class="kw">sudo</span> apt update && <span class="kw">sudo</span> apt install -y openjdk-11-jdk mysql-server
+
+<span class="cm"># cria o schema e usuário dedicados ao metastore</span>
+<span class="kw">sudo</span> mysql -e <span class="str">"CREATE DATABASE metastore;"</span>
+<span class="kw">sudo</span> mysql -e <span class="str">"CREATE USER 'hive'@'localhost' IDENTIFIED BY 'hive123';"</span>
+<span class="kw">sudo</span> mysql -e <span class="str">"GRANT ALL PRIVILEGES ON metastore.* TO 'hive'@'localhost';"</span>
+<span class="kw">sudo</span> mysql -e <span class="str">"FLUSH PRIVILEGES;"</span></pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">02</span><span class="step-title">Hive Metastore standalone</span></div>
+        <div class="step-body">Baixar o binário, configurar a conexão JDBC com MySQL, e inicializar o schema do catálogo.</div>
+        <div class="snippet">
+          <div class="snippet-title">bash</div>
+          <pre><span class="kw">wget</span> https://downloads.apache.org/hive/hive-4.0.0/apache-hive-metastore-4.0.0-bin.tar.gz
+<span class="kw">tar</span> -xzf apache-hive-metastore-4.0.0-bin.tar.gz
+<span class="kw">export</span> HIVE_HOME=~/apache-hive-metastore-4.0.0-bin
+
+<span class="cm"># driver JDBC do MySQL precisa estar no classpath do metastore</span>
+<span class="kw">wget</span> https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.4.0/mysql-connector-j-8.4.0.jar \
+  -O $HIVE_HOME/lib/mysql-connector-j.jar</pre>
+        </div>
+        <div class="snippet">
+          <div class="snippet-title">$HIVE_HOME/conf/metastore-site.xml</div>
+          <pre>&lt;configuration&gt;
+  &lt;property&gt;
+    &lt;name&gt;javax.jdo.option.ConnectionURL&lt;/name&gt;
+    &lt;value&gt;<span class="str">jdbc:mysql://localhost:3306/metastore?useSSL=false</span>&lt;/value&gt;
+  &lt;/property&gt;
+  &lt;property&gt;
+    &lt;name&gt;javax.jdo.option.ConnectionDriverName&lt;/name&gt;
+    &lt;value&gt;<span class="str">com.mysql.cj.jdbc.Driver</span>&lt;/value&gt;
+  &lt;/property&gt;
+  &lt;property&gt;
+    &lt;name&gt;javax.jdo.option.ConnectionUserName&lt;/name&gt;
+    &lt;value&gt;<span class="str">hive</span>&lt;/value&gt;
+  &lt;/property&gt;
+  &lt;property&gt;
+    &lt;name&gt;javax.jdo.option.ConnectionPassword&lt;/name&gt;
+    &lt;value&gt;<span class="str">hive123</span>&lt;/value&gt;
+  &lt;/property&gt;
+&lt;/configuration&gt;</pre>
+        </div>
+        <div class="snippet">
+          <div class="snippet-title">bash — inicializa o schema e sobe o serviço Thrift</div>
+          <pre>$HIVE_HOME/bin/schematool -dbType mysql -initSchema
+$HIVE_HOME/bin/start-metastore <span class="cm"># sobe o serviço na porta 9083</span></pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">03</span><span class="step-title">MinIO como storage S3</span></div>
+        <div class="step-body">Sobe o servidor MinIO local e cria o bucket que vai servir de warehouse.</div>
+        <div class="snippet">
+          <div class="snippet-title">bash</div>
+          <pre><span class="kw">wget</span> https://dl.min.io/server/minio/release/linux-amd64/minio
+<span class="kw">chmod</span> +x minio
+<span class="kw">./minio</span> server ~/minio-data --console-address <span class="str">":9001"</span> &
+
+<span class="cm"># cliente mc para criar o bucket via linha de comando</span>
+<span class="kw">wget</span> https://dl.min.io/client/mc/release/linux-amd64/mc
+<span class="kw">chmod</span> +x mc
+<span class="kw">./mc</span> alias set local http://localhost:9000 minioadmin minioadmin
+<span class="kw">./mc</span> mb local/warehouse</pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">04</span><span class="step-title">Spark apontando para os dois</span></div>
+        <div class="step-body">Configurar Spark para falar Thrift com o Metastore e S3A com o MinIO — os jars de integração S3 precisam bater com a versão do Hadoop empacotada no Spark.</div>
+        <div class="snippet">
+          <div class="snippet-title">spark-defaults.conf</div>
+          <pre>spark.sql.catalogImplementation          <span class="str">hive</span>
+spark.hive.metastore.uris                <span class="str">thrift://localhost:9083</span>
+spark.sql.warehouse.dir                  <span class="str">s3a://warehouse/</span>
+
+spark.hadoop.fs.s3a.impl                 <span class="str">org.apache.hadoop.fs.s3a.S3AFileSystem</span>
+spark.hadoop.fs.s3a.endpoint             <span class="str">http://localhost:9000</span>
+spark.hadoop.fs.s3a.access.key           <span class="str">minioadmin</span>
+spark.hadoop.fs.s3a.secret.key           <span class="str">minioadmin</span>
+spark.hadoop.fs.s3a.path.style.access    <span class="str">true</span>
+spark.hadoop.fs.s3a.connection.ssl.enabled <span class="str">false</span></pre>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">05</span><span class="step-title">Validar com duas sessões ao mesmo tempo</span></div>
+        <div class="step-body">O teste que realmente prova que saiu do Derby: abrir duas sessões Spark simultâneas e confirmar que ambas enxergam o catálogo sem conflito.</div>
+        <div class="snippet">
+          <div class="snippet-title">pyspark — sessão 1</div>
+          <pre>spark.sql(<span class="str">"CREATE TABLE vendas (id INT, valor DOUBLE) USING parquet"</span>)
+spark.sql(<span class="str">"INSERT INTO vendas VALUES (1, 99.90)"</span>)</pre>
+        </div>
+        <div class="snippet">
+          <div class="snippet-title">pyspark — sessão 2, aberta em paralelo, outro terminal</div>
+          <pre>spark.sql(<span class="str">"SELECT * FROM vendas"</span>).show()
+<span class="cm"># com Derby, a sessão 2 nem conseguiria abrir. Com MySQL, funciona.</span></pre>
+        </div>
+      </li>
+    </ol>
+
+    <div class="note">
+      Nota: versões de pacote (Hive, conector MySQL, jars do Hadoop/S3A) mudam com frequência — confirme a versão exata compatível com a build do Spark que você está usando antes de reproduzir os comandos acima.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: ambiente de dados local</span>
+      <span>·</span>
+      <span>stack: spark · minio · hive metastore · mysql · thrift</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
