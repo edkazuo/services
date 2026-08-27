@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — De 1.0 a XP: a história que moldou o desktop</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="De 1.0 a XP: dezesseis anos até o Windows se encontrar">
+<meta property="og:description" content="Da tela tiled do Windows 1.0 à fusão das linhagens 9x e NT no XP — a história de como o desktop mais usado do mundo virou o que é.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_windows_historia.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/windows_historia.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_windows_historia.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 620px; margin: 0 0 36px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  /* TIMELINE (signature element) */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: ""; position: absolute; left: 6px; top: 6px; bottom: 6px;
+    width: 2px; background: var(--line);
+  }
+  .tl-item { position: relative; padding-bottom: 32px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-dot {
+    position: absolute; left: -32px; top: 4px; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--surface); border: 2px solid var(--mint);
+  }
+  .tl-item.personal .tl-dot { border-color: var(--amber); background: var(--amber); }
+  .tl-year { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .tl-title { font-weight: 600; font-size: 16px; margin-bottom: 6px; }
+  .tl-desc { color: var(--text-muted); font-size: 14px; max-width: 580px; }
+  .tl-personal-note {
+    margin-top: 10px; padding: 12px 16px; border: 1px dashed var(--amber);
+    border-radius: var(--radius); background: rgba(231,169,62,0.06);
+    font-size: 13px; color: var(--text-muted);
+  }
+  .tl-personal-note strong { color: var(--amber); }
+
+  .split-note { border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-top: 8px; }
+  .split-note .label { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 12px; }
+  .split-note p { color: var(--text-muted); font-size: 14.5px; margin: 0; }
+  .split-note strong { color: var(--text); font-weight: 500; }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">História da Computação · Windows 1.0 → XP</div>
+    <h1>Dezesseis anos até o Windows se encontrar</h1>
+    <p class="lede">De uma interface que nem sobrepunha janela até um sistema operacional único, estável, usado por décadas — o Windows levou de 1985 a 2001 para <strong>unificar duas linhagens que nasceram separadas</strong>: a de consumidor (9x) e a corporativa (NT).</p>
+  </div>
+</header>
+
+<section class="linha-do-tempo">
+  <div class="wrap">
+    <div class="eyebrow">A linha do tempo</div>
+    <h2>Onze versões, duas famílias, um encontro</h2>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1985</div>
+        <div class="tl-title">Windows 1.0</div>
+        <div class="tl-desc">Interface gráfica rodando sobre MS-DOS — mas as janelas só podiam ser lado a lado (tiled), nunca sobrepostas, por receio de disputa legal com a Apple sobre o Macintosh.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1990</div>
+        <div class="tl-title">Windows 3.0</div>
+        <div class="tl-desc">A primeira versão que realmente vendeu — memória virtual, modo 386 Enhanced, Program Manager e File Manager. O Windows deixou de ser curiosidade e virou produto.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1992</div>
+        <div class="tl-title">Windows 3.1</div>
+        <div class="tl-desc">Fontes TrueType, drag and drop, OLE — e o fim do modo real do processador. Estabilidade suficiente para virar padrão de escritório no mundo inteiro.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1993</div>
+        <div class="tl-title">Windows for Workgroups 3.11</div>
+        <div class="tl-desc">Rede ponto a ponto embutida e acesso a arquivo de 32 bits (VFAT) — a versão que colocou o Windows dentro de escritório em rede, não só na máquina isolada.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1995</div>
+        <div class="tl-title">Windows NT 3.51</div>
+        <div class="tl-desc">A linhagem corporativa seguia caminho próprio — kernel independente do DOS, multitarefa preemptiva de verdade, pensado para servidor e estação de trabalho, não para o consumidor doméstico.</div>
+      </div>
+
+      <div class="tl-item personal">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1995</div>
+        <div class="tl-title">Windows 95</div>
+        <div class="tl-desc">Menu Iniciar, barra de tarefas, Plug and Play, nome de arquivo longo, TCP/IP integrado — híbrido de 16/32 bits que definiu visualmente o que "usar um computador" significava pelos quinze anos seguintes.</div>
+        <div class="tl-personal-note">
+          <strong>Nota pessoal:</strong> testei a versão beta do 95 nesse mesmo ano — na mesma época em que configurava Slackware na unha, sem Plug and Play nenhum, na outra ponta do espectro técnico.
+        </div>
+      </div>
+
+      <div class="tl-item personal">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1996</div>
+        <div class="tl-title">Windows NT 4.0</div>
+        <div class="tl-desc">Pegou a interface do 95 e colocou sobre o kernel NT — a versão que fez estação de trabalho corporativa parecer tão amigável quanto a de casa, sem abrir mão da estabilidade de servidor.</div>
+        <div class="tl-personal-note">
+          <strong>Nota pessoal:</strong> anos depois, já com o screensaver "Matrix" popularizado pelo filme (1999) rodando em servidores NT 4.0/2000, virou hábito usá-lo como monitor de desempenho improvisado: se os caracteres caíam devagar, a CPU estava sobrecarregada. Décadas antes de qualquer dashboard de observability existir.
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1999</div>
+        <div class="tl-title">Windows 98 SE</div>
+        <div class="tl-desc">Internet Explorer integrado, suporte a USB amadurecido, compartilhamento de conexão — ainda a linhagem de consumidor, ainda apoiada em DOS por baixo.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2000</div>
+        <div class="tl-title">Windows 2000</div>
+        <div class="tl-desc">NT chegando ao desktop corporativo com Active Directory — enquanto a linhagem de consumidor ainda vivia em outro trilho, tecnicamente mais frágil.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2000</div>
+        <div class="tl-title">Windows Millennium (ME)</div>
+        <div class="tl-desc">Último desktop de consumidor apoiado em DOS — trouxe o System Restore, mas ficou marcado como a versão mais instável da linhagem 9x, pressionando a favor da unificação que viria a seguir.</div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2001</div>
+        <div class="tl-title">Windows XP</div>
+        <div class="tl-desc">O encontro: kernel NT para todo mundo, consumidor e empresa, na mesma base. Suporte oficial durou até 2014 — treze anos depois do lançamento.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="duas-linhagens">
+  <div class="wrap">
+    <div class="eyebrow">Por que isso importa tecnicamente</div>
+    <h2>Duas famílias, dois motivos de existir</h2>
+    <p class="section-lede">Da metade dos anos 90 até 2001, a Microsoft manteve duas linhas de desenvolvimento simultâneas, cada uma resolvendo um problema diferente.</p>
+
+    <div class="split-note">
+      <div class="label">Linhagem 9x (3.1 → 95 → 98 → ME)</div>
+      <p>Apoiada em MS-DOS por baixo, priorizava <strong>compatibilidade com hardware de consumidor</strong> e software legado — o preço disso era menos estabilidade e nenhuma proteção real de memória entre processos.</p>
+    </div>
+
+    <div class="split-note" style="margin-top: 16px;">
+      <div class="label">Linhagem NT (3.51 → 4.0 → 2000)</div>
+      <p>Kernel próprio, sem dependência de DOS, com <strong>multitarefa preemptiva e proteção de memória de verdade</strong> — construída para servidor e estação de trabalho corporativa, onde travar não era opção.</p>
+    </div>
+
+    <div class="note">
+      O XP não foi só "mais uma versão" — foi a decisão de que manter duas arquiteturas de kernel em paralelo não escalava mais. A partir dele, todo Windows subsequente (Vista, 7, 10, 11) descende da linhagem NT.
+    </div>
+  </div>
+</section>
+
+<section class="novell">
+  <div class="wrap">
+    <div class="eyebrow">A história paralela</div>
+    <h2>Enquanto isso, a Novell dominava a rede</h2>
+    <p class="section-lede">Nenhuma história de servidor Windows dos anos 90 está completa sem mencionar quem, por muito tempo, era dono de fato do ambiente corporativo de rede.</p>
+
+    <div class="split-note">
+      <div class="label">Novell NetWare</div>
+      <p>Durante boa parte dos anos 80 e 90, <strong>Novell NetWare era o padrão de fato</strong> para rede local corporativa — sistema de arquivos e serviço de diretório (NDS) mais maduros que qualquer coisa que a Microsoft oferecia na época. Windows NT precisou coexistir ao lado de servidor Novell por anos, muitas vezes na mesma sala de rack, antes de conseguir migrar essa base de clientes.</p>
+    </div>
+
+    <div class="note">
+      A ascensão do Active Directory (Windows 2000) foi, em boa parte, resposta direta ao NDS da Novell — levou anos até a Microsoft convencer o mercado corporativo a abandonar uma infraestrutura de rede que já funcionava bem havia mais de uma década.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: história da computação</span>
+      <span>·</span>
+      <span>1985 — 2001</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
