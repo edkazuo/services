@@ -109,7 +109,7 @@
   <div class="wrap">
     <div class="eyebrow">Governança · BRM · Business Rules Management</div>
     <h1>Planilha não é Shadow IT. É o BRM que a TI nunca construiu</h1>
-    <p class="lede">PROCV, PROCH, arquivo de interface digitado à mão — fácil de rotular como desvio a corrigir. Mas quando o negócio recorre à planilha pra aplicar regra que muda com frequência, o problema não é falta de disciplina: é a <strong>ausência de uma categoria de sistema</strong> que a TI raramente para pra reconhecer que precisa construir.</p>
+    <p class="lede">PROCV, PROCH, arquivo de interface digitado à mão — fácil de rotular como desvio a corrigir. Mas quando o negócio recorre à planilha pra aplicar regra que muda com frequência, o problema não é falta de disciplina: é a <strong>ausência de uma categoria de sistema</strong> que a TI raramente para pra reconhecer que precisa construir — e que completa a lacuna que o portal de self-service, sozinho, não cobre.</p>
 
     <div class="code-window">
       <div class="code-titlebar">
@@ -253,6 +253,52 @@
 
     <div class="note">
       Não existe produto de mercado que resolve isso pronto, de forma leve, sem virar plataforma pesada e genérica que ainda exige TI no meio do fluxo de promoção. O caminho realista costuma ser: um motor de regra simples e interno, focado só na dualidade simulação/produção e no fluxo de promoção — não em recriar todo o ecossistema de BI por cima.
+    </div>
+  </div>
+</section>
+
+<section class="precedente">
+  <div class="wrap">
+    <div class="eyebrow">Isto não é teoria nova</div>
+    <h2>O precedente de 2014: regra como dado, não como código</h2>
+    <p class="section-lede">Muito antes do termo "BRM" entrar em qualquer conversa de arquitetura, esse princípio já tinha sido resolvido — em SAS, sem framework, sem YAML, sem nada além de <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">PROC FORMAT CNTLIN</code> e <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">putn()</code>. Um motor de crédito bancário (projeto <span class="mono" style="color:var(--amber);">G4TO</span>) mudava regra de negócio editando tabela de parâmetro — nunca o código.</p>
+
+    <div class="fn-table">
+      <div class="fn-row">
+        <div class="fn-name">Camada 1 — regra vira formato</div>
+        <div class="fn-desc"><code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">PROC FORMAT CNTLIN=</code> lia tabelas de parametrização (<span class="mono">g4agpf01, g4camp01, g4inst01...</span>) e transformava cada linha diretamente em regra de formato — sem ninguém escrever <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">if/then</code> de negócio.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Camada 2 — aplicação dinâmica em runtime</div>
+        <div class="fn-desc">O nome do formato a aplicar era construído na hora, a partir do próprio dado (<span class="mono">cat('fmt_vlr_ead_', substr(cod_familia,1,2), 'A')</span>), verificado contra o catálogo interno do SAS, e só então aplicado. Editar a regra = editar a tabela; o próximo ciclo já rodava com a regra nova.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      O que faltava ali não era o mecanismo — era exatamente a parte que este capítulo defende como estrutural: uma <strong>visão de simulação formalizada</strong>, onde o dono do negócio testa o efeito da tabela nova antes de ela virar regra vigente, e um <strong>fluxo de promoção</strong> auditável entre as duas. O G4TO provou a metade mais difícil (regra como dado, sem código) havia mais de dez anos. A parte que dois times de TI, décadas depois, ainda tratam como "regra tem que ser fixa e especificada de antemão" já tinha sido desmentida na prática.
+    </div>
+  </div>
+</section>
+
+<section class="conexao">
+  <div class="wrap">
+    <div class="eyebrow">Onde isso se encaixa</div>
+    <h2>O template que faltava no catálogo de self-service</h2>
+    <p class="section-lede">O <a href="governanca_self_service.html" style="color: var(--mint); text-decoration: underline;">capítulo sobre self-service</a> descreveu um portal com templates pré-aprovados pra resolver acesso a dado — leitura, exportação, permissão. Mas isso não cobre o caso do BRM, porque aqui o negócio não está pedindo pra <em>ver</em> dado: está pedindo pra <em>criar</em> dado, aplicando uma regra que muda com frequência.</p>
+
+    <div class="fn-table">
+      <div class="fn-row">
+        <div class="fn-name">Self-service de acesso</div>
+        <div class="fn-desc">Resolve "preciso ler/exportar um dado que já existe". Camadas 1 e 2 do capítulo anterior: template pré-aprovado, fast lane de exceção.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Self-service de regra (BRM)</div>
+        <div class="fn-desc">Resolve "preciso aplicar uma regra que eu mesmo simulo e valido, sem esperar sprint". É o template que faltava no catálogo — não um novo canal de acesso, mas um novo tipo de produto oferecido dentro do mesmo portal.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      O BRM não é um quarto pilar isolado de governança — é a peça que completa o portal de self-service para o caso mais difícil de resolver: regra de negócio dinâmica que, na ausência de alternativa formal, sempre vai acabar em planilha.
     </div>
   </div>
 </section>
