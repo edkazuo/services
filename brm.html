@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — Planilha não é Shadow IT. É o BRM que a TI nunca construiu</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Planilha não é Shadow IT: é o BRM que a TI nunca construiu">
+<meta property="og:description" content="Chamar planilha de Shadow IT é confundir sintoma com causa. O que falta não é disciplina — é uma categoria de sistema que o mercado não vende pronta: um BRM com visão de simulação e produção.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_brm.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/brm.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_brm.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 620px; margin: 0 0 36px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  /* DIFF WINDOW (signature element) */
+  .code-window { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 20px 60px -25px rgba(0,0,0,0.6); margin-bottom: 16px; }
+  .code-titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .code-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .code-dot.r { background: #4a3530; } .code-dot.y { background: #4a4230; } .code-dot.g { background: #304a3a; }
+  .code-filename { margin-left: 8px; font-size: 12.5px; color: var(--text-faint); }
+  .code-body { font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.85; padding: 20px 0; overflow-x: auto; }
+  .code-line { padding: 0 20px; white-space: pre; display: block; }
+  .code-line.rm { background: rgba(193,80,58,0.10); color: #d99184; border-left: 3px solid var(--rust); padding-left: 17px; }
+  .code-line.add { background: rgba(95,175,160,0.10); color: #9bd4c8; border-left: 3px solid var(--mint); padding-left: 17px; }
+  .code-line.blank { height: 10px; }
+  .code-line:not(.rm):not(.add):not(.blank) { padding-left: 20px; color: var(--text-faint); }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .cs-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .cs-label { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; margin-bottom: 14px; }
+  .cs-card.challenge .cs-label { color: var(--rust); }
+  .cs-card.solution .cs-label { color: var(--mint); }
+  .cs-card p { color: var(--text-muted); font-size: 14.5px; margin: 0; }
+  @media (max-width: 620px) { .cs-grid { grid-template-columns: 1fr; } }
+
+  /* DIAGRAM (matches site palette) */
+  .diagram-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 24px 20px; margin: 8px 0 32px; overflow-x: auto; }
+  .diagram-caption { font-size: 12.5px; color: var(--text-faint); text-align: center; margin-top: 14px; }
+
+  .fn-table { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .fn-row { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--line); align-items: center; }
+  .fn-row:first-child { border-top: none; }
+  .fn-name { font-family: 'IBM Plex Mono', monospace; color: var(--mint); font-size: 13.5px; }
+  .fn-desc { color: var(--text-muted); font-size: 13.5px; }
+  @media (max-width: 620px) { .fn-row { grid-template-columns: 1fr; gap: 4px; } }
+
+  /* STEPS */
+  .steps { list-style: none; padding: 0; margin: 0; }
+  .step { padding: 28px 0; border-top: 1px solid var(--line); }
+  .step:first-child { border-top: none; padding-top: 0; }
+  .step-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .step-num { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-weight: 700; font-size: 15px; }
+  .step-title { font-weight: 600; font-size: 16px; }
+  .step-body { color: var(--text-muted); font-size: 14px; max-width: 620px; }
+  .step-owner { display: inline-block; margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-faint); border: 1px solid var(--line); border-radius: 100px; padding: 4px 10px; }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Governança · BRM · Business Rules Management</div>
+    <h1>Planilha não é Shadow IT. É o BRM que a TI nunca construiu</h1>
+    <p class="lede">PROCV, PROCH, arquivo de interface digitado à mão — fácil de rotular como desvio a corrigir. Mas quando o negócio recorre à planilha pra aplicar regra que muda com frequência, o problema não é falta de disciplina: é a <strong>ausência de uma categoria de sistema</strong> que a TI raramente para pra reconhecer que precisa construir.</p>
+
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+        <span class="code-filename">diagnostico.diff</span>
+      </div>
+      <div class="code-body">
+        <span class="code-line rm">- planilha = Shadow IT, desvio de processo a eliminar</span>
+        <span class="code-line rm">- solução = "proibir planilha", "trazer pra dentro de um app"</span>
+        <span class="code-line blank"></span>
+        <span class="code-line add">+ planilha = sistema legítimo, na ausência de alternativa formal</span>
+        <span class="code-line add">+ solução = construir o BRM que falta: simulação + produção + promoção</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="problema">
+  <div class="wrap">
+    <div class="eyebrow">O diagnóstico errado mais comum</div>
+    <h2>Planilha não é o problema. É a resposta a um problema não resolvido</h2>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Visão comum de TI</div>
+        <p>Planilha com fórmula alimentando tabela é tratada como desvio de processo — algo pra migrar pra um "aplicativo" assim que houver tempo de sprint. A régua usada é disciplina: "o negócio devia ter pedido antes de fazer isso sozinho".</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">O que está de fato acontecendo</div>
+        <p>O negócio escolheu a ferramenta que entrega a <strong>flexibilidade e o tempo de resposta</strong> que ele precisa pra competir. A regra muda toda semana, ou toda promoção comercial, ou toda safra — nenhum ciclo de desenvolvimento tradicional acompanha esse ritmo. A planilha não é o desvio; é o sistema que preenche a lacuna que a TI nunca preencheu.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="brm">
+  <div class="wrap">
+    <div class="eyebrow">A categoria de sistema que falta</div>
+    <h2>Um BRM de verdade não é "mais um CRUD"</h2>
+    <p class="section-lede">Business Rules Management não é aplicativo de cadastro com campo a mais. É uma categoria estrutural própria — e ela exige uma coisa que a maioria dos sistemas internos nunca precisou ter: <strong>duas visões coexistindo</strong>.</p>
+
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 780 260" width="100%" height="auto" style="display:block;" role="img" aria-label="Fluxo de simulação e promoção de regra de negócio em um BRM">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#5b6673" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <style>
+          .db { font-family:'IBM Plex Mono',monospace; font-size:11px; fill:#5b6673; }
+          .dt { font-family:'IBM Plex Sans',sans-serif; font-size:13px; font-weight:600; fill:#edeff2; }
+          .ds { font-family:'IBM Plex Sans',sans-serif; font-size:11.5px; fill:#8d98a6; }
+          .arr { stroke:#5b6673; stroke-width:1.2; fill:none; }
+        </style>
+
+        <rect x="20" y="20" width="740" height="90" rx="10" fill="none" stroke="#e7a93e" stroke-width="1" stroke-dasharray="4 4"/>
+        <text class="db" x="34" y="42" fill="#e7a93e">ambiente de simulação</text>
+
+        <rect x="40" y="55" width="160" height="44" rx="8" fill="#171f28" stroke="#2a3540" stroke-width="1"/>
+        <text class="dt" x="54" y="80">Regra de negócio</text>
+
+        <rect x="240" y="55" width="160" height="44" rx="8" fill="#171f28" stroke="#2a3540" stroke-width="1"/>
+        <text class="dt" x="254" y="80">Simular impacto</text>
+
+        <rect x="440" y="55" width="160" height="44" rx="8" fill="#171f28" stroke="#2a3540" stroke-width="1"/>
+        <text class="dt" x="454" y="80">Dono valida</text>
+
+        <path class="arr" d="M200 77 L240 77" marker-end="url(#arrow)"/>
+        <path class="arr" d="M400 77 L440 77" marker-end="url(#arrow)"/>
+
+        <path class="arr" d="M520 99 L520 150" marker-end="url(#arrow)"/>
+        <text class="ds" x="530" y="128">promoção</text>
+
+        <rect x="20" y="150" width="740" height="90" rx="10" fill="none" stroke="#5fafa0" stroke-width="1"/>
+        <text class="db" x="34" y="172" fill="#5fafa0">ambiente de produção</text>
+
+        <rect x="40" y="185" width="160" height="44" rx="8" fill="#171f28" stroke="#2a3540" stroke-width="1"/>
+        <text class="dt" x="54" y="210">Regra vigente</text>
+
+        <rect x="240" y="185" width="160" height="44" rx="8" fill="#171f28" stroke="#2a3540" stroke-width="1"/>
+        <text class="dt" x="254" y="210">Versão + histórico</text>
+
+        <rect x="440" y="185" width="160" height="44" rx="8" fill="#171f28" stroke="#2a3540" stroke-width="1"/>
+        <text class="dt" x="454" y="210">Alimenta a tabela</text>
+
+        <path class="arr" d="M200 207 L240 207" marker-end="url(#arrow)"/>
+        <path class="arr" d="M400 207 L440 207" marker-end="url(#arrow)"/>
+      </svg>
+      <div class="diagram-caption">a regra só chega à produção depois de simulada e validada pelo dono de negócio — nunca direto</div>
+    </div>
+
+    <div class="fn-table">
+      <div class="fn-row">
+        <div class="fn-name">Visão simulação</div>
+        <div class="fn-desc">O negócio testa a regra nova contra dado real (ou espelho), vê o impacto, ajusta — sem afetar produção. É o que a planilha oferece hoje, informalmente: mudar a fórmula e ver o resultado na hora.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Visão produção</div>
+        <div class="fn-desc">Só recebe regra que já foi validada em simulação. O que está em produção é sempre auditável: qual versão da regra está vigente, desde quando, aprovada por quem.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Fluxo de promoção</div>
+        <div class="fn-desc">O ponto crítico que falta em quase toda tentativa de substituir planilha: um caminho formal e rápido pra levar a regra validada de simulação pra produção — sem depender de sprint de desenvolvimento a cada mudança.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Dono da regra</div>
+        <div class="fn-desc">A regra pertence ao negócio, não à TI. TI constrói e mantém a plataforma; quem decide se a regra está certa e quando promovê-la é quem responde por ela no negócio.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="nao-e-falha-tecnica">
+  <div class="wrap">
+    <div class="eyebrow">Por que isso não apareceu antes</div>
+    <h2>Não é falta de competência técnica — é falta de modelar o problema certo</h2>
+    <p class="section-lede">Construir tela de cadastro é trivial. Construir um motor onde o próprio usuário de negócio simula, valida e promove regra sem abrir chamado de desenvolvimento a cada mudança exige modelar a dinâmica do negócio, não só a estrutura do dado.</p>
+
+    <ol class="steps">
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">01</span><span class="step-title">Reconhecer a planilha como requisito, não como falha</span></div>
+        <div class="step-body">O ritmo de mudança da regra de negócio é o requisito real. Se a regra muda semanalmente, qualquer solução que exija ciclo de desenvolvimento pra cada ajuste já nasceu inadequada — não importa quão bem construída.</div>
+        <span class="step-owner">Produto / Plataforma</span>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">02</span><span class="step-title">Modelar as duas visões desde o início</span></div>
+        <div class="step-body">Simulação e produção não são "fase 2". São a espinha dorsal do sistema — se o desenho não nasce com essa dualidade, o resultado é só mais um CRUD que volta a depender de TI a cada mudança de regra.</div>
+        <span class="step-owner">Arquitetura</span>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">03</span><span class="step-title">Formalizar o fluxo de promoção</span></div>
+        <div class="step-body">Validação em simulação precisa ter um caminho claro, rápido e auditável até virar regra vigente em produção — com aprovação do dono de negócio, não de TI.</div>
+        <span class="step-owner">Governança de dados</span>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">04</span><span class="step-title">Versionar regra, não só dado</span></div>
+        <div class="step-body">Cada mudança de regra fica registrada como evento — data, autor, motivo, versão anterior — permitindo reconstruir por que um resultado saiu diferente em um determinado período.</div>
+        <span class="step-owner">Engenharia de dados</span>
+      </li>
+    </ol>
+
+    <div class="note">
+      Não existe produto de mercado que resolve isso pronto, de forma leve, sem virar plataforma pesada e genérica que ainda exige TI no meio do fluxo de promoção. O caminho realista costuma ser: um motor de regra simples e interno, focado só na dualidade simulação/produção e no fluxo de promoção — não em recriar todo o ecossistema de BI por cima.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: governança &amp; business rules management</span>
+      <span>·</span>
+      <span>stack: brm · versionamento de regra · simulação vs produção · data governance</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
