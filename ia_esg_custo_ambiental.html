@@ -98,7 +98,7 @@
   <div class="wrap">
     <div class="eyebrow">ESG · Infraestrutura de IA · Custo Oculto</div>
     <h1>IA e ESG: a conta energética que ninguém está fechando</h1>
-    <p class="lede">Uma única consulta a um chatbot consome em média <strong>2,9 Wh</strong> — cerca de dez vezes mais do que uma busca comum no Google. Multiplica isso por bilhões de consultas por dia, some o resfriamento de servidor puxando água em regiões já estressadas hidricamente, e chega uma pergunta incômoda: dá pra bater no peito dizendo "somos ESG" e, ao mesmo tempo, adotar IA em tudo sem medir o que isso custa pro planeta?</p>
+    <p class="lede">Uma única consulta a um chatbot consome em média <strong>2,9 Wh</strong> — cerca de dez vezes mais do que uma busca comum no Google. Multiplica isso por bilhões de consultas por dia, some o resfriamento de servidor puxando água em regiões já estressadas hidricamente, e chega uma pergunta incômoda: dá pra bater no peito dizendo "somos ESG" quando boa parte desse custo nem é decisão sua? Google Workspace, Databricks, Salesforce, Microsoft 365 — a IA já vem embarcada. A empresa raramente escolhe "usar ou não"; escolhe, no máximo, continuar pagando pela ferramenta inteira ou não.</p>
   </div>
 </header>
 
@@ -116,6 +116,33 @@
         <div class="cs-label">O que a adoção de IA custa</div>
         <p>Cada modelo rodando em produção, cada assistente "em tudo", cada chamada de API consome energia e água — direta (resfriamento) e indireta (geração elétrica) — numa escala que cresce junto com o volume de uso, não com a intenção por trás dele.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="embutida">
+  <div class="wrap">
+    <div class="eyebrow">O problema estrutural</div>
+    <h2>IA embutida, não escolhida</h2>
+    <p class="section-lede">O discurso de "adote com critério" pressupõe uma decisão que, cada vez mais, não está mais nas mãos de quem consome a ferramenta.</p>
+
+    <div class="fn-table">
+      <div class="fn-row">
+        <div class="fn-name">Google Workspace</div>
+        <div class="fn-desc">Gemini já roda integrado a Docs, Gmail e Sheets — não é um módulo que se ativa à parte, é parte do produto que a empresa já paga.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Databricks</div>
+        <div class="fn-desc">Assistente de IA embutido direto no notebook, ajudando em SQL e otimização de Spark — infraestrutura de dados e infraestrutura de IA já vêm coladas.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Salesforce, Microsoft 365, Slack, Notion</div>
+        <div class="fn-desc">Mesmo padrão se repete: IA generativa como parte do pacote, não como add-on que se contrata ou recusa separadamente.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>Paralelo com contabilidade de carbono:</strong> isso é essencialmente um problema de <em>Scope 3</em> — emissão indireta, gerada por fornecedor, fora do controle operacional direto de quem consome. É historicamente o escopo mais difícil de medir, porque a empresa não opera a infraestrutura, só usa o produto final. Frameworks recentes tentam resolver isso em três níveis: estimar por valor gasto com o fornecedor (fraco, mas é o que dá pra fazer sem dado nenhum), estimar por volume real de uso/token (mais preciso, exige instrumentação), ou usar dado energético reportado pelo próprio provedor (o mais confiável — mas depende da transparência de quem, no geral, não divulga nada).
     </div>
   </div>
 </section>
@@ -152,7 +179,7 @@
         <div class="fn-desc">De aproximadamente 1% em 2024, com estimativas indo de 2,3% a 7,4% até 2030 dependendo do ritmo de expansão da IA — um salto de escala em menos de uma década.</div>
       </div>
     </div>
-    <p class="source-line">Fontes: Agência Internacional de Energia, relatórios setoriais de consumo de data center e estimativas de mercado 2024–2026.</p>
+    <p class="source-line">Fontes: Agência Internacional de Energia, relatórios setoriais de consumo de data center, GRI Standards, ISSB/IFRS S1-S2, CDP e GHG Protocol — estimativas e diretrizes 2024–2026.</p>
   </div>
 </section>
 
@@ -164,7 +191,55 @@
     <p>É a mesma lógica de qualquer recurso sem dono e sem critério de uso — só que aqui o "recurso guardado sem necessidade" não é um HD parado, é energia e água sendo puxadas continuamente pra sustentar adoção que muitas vezes acontece por pressão de mercado, não por ganho real medido.</p>
 
     <div class="note">
-      <strong>Ponto prático:</strong> empresa que investe pesado em IA — direta (times próprios) ou indiretamente (via cloud provider, parceria, ferramenta embarcada em outro produto) — enquanto se posiciona como "100% ESG" abre flanco real de questionamento em auditoria, relatório de sustentabilidade e junto a investidor mais atento. Não é discussão filosófica: é risco reputacional mensurável.
+      <strong>Ponto prático:</strong> mesmo sem controlar a infraestrutura, a empresa que se posiciona como "100% ESG" enquanto consome — direta ou indiretamente — ferramentas com IA embarcada em escala continua exposta a questionamento em auditoria e relatório de sustentabilidade. A diferença é que o alvo certo da cobrança deixou de ser "por que vocês adotaram IA" e passou a ser "por que vocês não sabem, e não exigem saber, quanto isso custa".
+    </div>
+  </div>
+</section>
+
+<section class="selo">
+  <div class="wrap">
+    <div class="eyebrow">A saída estrutural</div>
+    <h2>Um selo ESG-IA, não uma negociação caso a caso</h2>
+    <p class="section-lede">Nenhuma empresa isolada tem poder de barganha pra exigir transparência de um fornecedor do tamanho de Google ou Microsoft. O padrão que resolveu esse mesmo problema em outros setores não foi negociação individual — foi certificação de mercado.</p>
+
+    <div class="fn-table">
+      <div class="fn-row">
+        <div class="fn-name">Selo de eficiência energética</div>
+        <div class="fn-desc">Geladeira, ar-condicionado, lâmpada — o rótulo A/B/C/D já existe há décadas e é comparável entre marcas sem exigir que o consumidor negocie com o fabricante.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Rótulo nutricional</div>
+        <div class="fn-desc">Composição obrigatória e padronizada por lei — ninguém precisa perguntar ao fabricante quanto de sódio tem o produto, a informação já vem exposta por exigência regulatória.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Diretiva europeia de data center</div>
+        <div class="fn-desc">Já em vigor: instalação acima de 500 kW é obrigada a publicar indicador ambiental a partir de 2025, e acima de 1 MW segue documento de boas práticas com dado alimentando base pública de desempenho energético e hídrico.</div>
+      </div>
+    </div>
+
+    <p style="color: var(--text-muted); font-size: 14.5px; max-width: 640px; margin-top: 24px;">Um "Selo ESG-IA" seguiria a mesma lógica: fornecedor de ferramenta com IA embarcada — SaaS, cloud provider, plataforma de dados — precisaria expor de forma padronizada:</p>
+
+    <div class="fn-table" style="margin-top: 16px;">
+      <div class="fn-row">
+        <div class="fn-name">Consumo por unidade de uso</div>
+        <div class="fn-desc">Energia média por token, por consulta ou por usuário/mês — granularidade suficiente pra comparar fornecedores entre si, não só o total da empresa.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Origem da energia</div>
+        <div class="fn-desc">Percentual de matriz renovável vs. matriz mista alimentando o data center que processa aquele produto específico.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Pegada hídrica associada</div>
+        <div class="fn-desc">Consumo de água direto (resfriamento) atribuível proporcionalmente ao uso daquele produto, não só um número agregado da empresa inteira.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      Com um selo assim, a "fatura opaca" deixa de ser opaca por padrão — a informação vem junto do contrato, auditável por terceiro, comparável entre fornecedores concorrentes. Isso tira a pressão de cada empresa consumidora ter que brigar sozinha por transparência.
+    </div>
+
+    <div class="note">
+      <strong>O ponto crítico:</strong> pra isso ter peso de verdade, não pode ser selo regional ou proprietário de uma associação isolada — vira só mais uma etiqueta fácil de ostentar em apresentação institucional, sem força nenhuma pra segurar greenwashing. Precisa nascer dentro (ou ser reconhecido por) uma estrutura já consolidada globalmente: GRI Standards (o framework de relato mais adotado no mundo), ISSB/IFRS S1-S2 (que o Brasil já tornou obrigatório pra companhia aberta a partir de 2026, via Resolução CVM 193), CDP (referência específica em dado de carbono e água) ou GHG Protocol — que já segmenta emissão em Escopo 1, 2 e 3 e é o vocabulário que investidor e auditor já usam. Um "Selo ESG-IA" só ganha dente de verdade se plugar nesse ecossistema já reconhecido mundialmente, não mais uma sigla isolada disputando espaço com quem já é referência.
     </div>
   </div>
 </section>
@@ -172,27 +247,29 @@
 <section class="criterios">
   <div class="wrap">
     <div class="eyebrow">O que muda na prática</div>
-    <h2>Adoção sem critério vs. adoção com critério</h2>
+    <h2>Consumir sem cobrar vs. consumir exigindo transparência</h2>
+    <p class="section-lede">Já que a decisão de "ter IA ou não" raramente está mais nas mãos de quem consome, o critério real se desloca: não é sobre adotar ou recusar, é sobre que perguntas você faz pro fornecedor antes de assinar o contrato.</p>
 
     <div class="diff-list">
       <div class="diff-col out">
-        <div class="diff-col-label">Sem critério</div>
-        <div class="diff-item"><span class="marker">−</span>IA adotada por pressão de mercado, sem medir custo x ganho</div>
-        <div class="diff-item"><span class="marker">−</span>Nenhum acompanhamento de consumo de energia/água por uso</div>
-        <div class="diff-item"><span class="marker">−</span>Relatório ESG e investimento em IA tratados como assuntos separados</div>
-        <div class="diff-item"><span class="marker">−</span>Modelo caro rodando pra tarefa que um modelo pequeno resolveria</div>
+        <div class="diff-col-label">Sem cobrança</div>
+        <div class="diff-item"><span class="marker">−</span>Aceita a IA embarcada como parte do pacote, sem perguntar nada</div>
+        <div class="diff-item"><span class="marker">−</span>Nenhuma cláusula contratual sobre dado de consumo energético</div>
+        <div class="diff-item"><span class="marker">−</span>Relatório ESG ignora Scope 3 de ferramenta de software</div>
+        <div class="diff-item"><span class="marker">−</span>Só descobre o custo ambiental quando vira notícia de terceiro</div>
       </div>
       <div class="diff-col in">
-        <div class="diff-col-label">Com critério</div>
-        <div class="diff-item"><span class="marker">+</span>Caso de uso justificado por ganho real, não por medo de ficar pra trás</div>
-        <div class="diff-item"><span class="marker">+</span>Custo ambiental entra na mesma planilha do custo financeiro</div>
-        <div class="diff-item"><span class="marker">+</span>Métrica ESG e investimento em infraestrutura de IA reportados juntos</div>
-        <div class="diff-item"><span class="marker">+</span>Modelo dimensionado pro tamanho real do problema</div>
+        <div class="diff-col-label">Com cobrança</div>
+        <div class="diff-item"><span class="marker">+</span>Pergunta ao fornecedor se dá pra desligar/isolar o módulo de IA embutido</div>
+        <div class="diff-item"><span class="marker">+</span>Exige relatório de consumo (mesmo que estimado) como parte do contrato</div>
+        <div class="diff-item"><span class="marker">+</span>Trata Scope 3 de fornecedor de software como parte real do inventário ESG</div>
+        <div class="diff-item"><span class="marker">+</span>Reconhece publicamente o limite: "não controlamos, mas cobramos de quem controla"</div>
+        <div class="diff-item"><span class="marker">+</span>Apoia/exige selo ESG-IA plugado em framework já reconhecido mundialmente (GRI, ISSB, CDP), não uma sigla isolada</div>
       </div>
     </div>
 
     <div class="note">
-      Achar a tecnologia fascinante e usá-la bastante não é incompatível com ser cético do hype em volta dela. O problema nunca foi a ferramenta — é tratar adoção em massa como virtude por si só, sem nunca perguntar quanto isso custa, pra quem, e se o ganho justifica.
+      Achar a tecnologia fascinante e usá-la bastante não é incompatível com ser cético do hype em volta dela. O problema nunca foi a ferramenta — é fingir que existe escolha onde não existe mais, e usar essa desculpa pra não cobrar de quem realmente decide como a infraestrutura é construída.
     </div>
   </div>
 </section>
