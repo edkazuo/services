@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — SAS Turbinado: hash como índice, geração de código como arquitetura</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="SAS Turbinado: o join artesanal que substitui MERGE, PROC SORT e SQL de vários JOINs">
+<meta property="og:description" content="Hash object como índice, POINT= como acesso direto, e regra de negócio virando código gerado — como escrever SAS que se comporta como um otimizador de banco de dados, na mão.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_sas_turbinado.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/sas_turbinado.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_sas_turbinado.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 620px; margin: 0 0 36px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  /* DIFF WINDOW (signature element) */
+  .code-window { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 20px 60px -25px rgba(0,0,0,0.6); margin-bottom: 16px; }
+  .code-titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .code-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .code-dot.r { background: #4a3530; } .code-dot.y { background: #4a4230; } .code-dot.g { background: #304a3a; }
+  .code-filename { margin-left: 8px; font-size: 12.5px; color: var(--text-faint); }
+  .code-body { font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.85; padding: 20px 0; overflow-x: auto; }
+  .code-line { padding: 0 20px; white-space: pre; display: block; }
+  .code-line.rm { background: rgba(193,80,58,0.10); color: #d99184; border-left: 3px solid var(--rust); padding-left: 17px; }
+  .code-line.add { background: rgba(95,175,160,0.10); color: #9bd4c8; border-left: 3px solid var(--mint); padding-left: 17px; }
+  .code-line.blank { height: 10px; }
+  .code-line:not(.rm):not(.add):not(.blank) { padding-left: 20px; color: var(--text-faint); }
+
+  /* PLAIN CODE BLOCK */
+  .snippet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin: 20px 0; }
+  .snippet-title { padding: 10px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace; display: flex; justify-content: space-between; align-items: center; }
+  .snippet-title .flag { color: var(--amber); font-weight: 600; }
+  .snippet pre { margin: 0; padding: 18px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; line-height: 1.75; overflow-x: auto; color: var(--text-muted); }
+  .snippet .kw { color: var(--mint); }
+  .snippet .str { color: var(--amber); }
+  .snippet .cm { color: var(--text-faint); font-style: italic; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  .problema p { color: var(--text-muted); max-width: 640px; }
+  .problema p + p { margin-top: 16px; }
+  .problema strong { color: var(--text); font-weight: 500; }
+
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .cs-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .cs-label { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; margin-bottom: 14px; }
+  .cs-card.challenge .cs-label { color: var(--rust); }
+  .cs-card.solution .cs-label { color: var(--mint); }
+  .cs-card p { color: var(--text-muted); font-size: 14.5px; margin: 0; }
+  .cs-card code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: var(--ink); padding: 2px 6px; border-radius: 4px; color: var(--mint); }
+  @media (max-width: 620px) { .cs-grid { grid-template-columns: 1fr; } }
+
+  /* STEPS (processo numerado) */
+  .steps { list-style: none; padding: 0; margin: 0; }
+  .step { display: grid; grid-template-columns: 40px 1fr; gap: 20px; padding: 22px 0; border-top: 1px solid var(--line); }
+  .step:first-child { border-top: none; padding-top: 0; }
+  .step-num { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-weight: 600; font-size: 14px; padding-top: 2px; }
+  .step-title { font-weight: 600; margin-bottom: 6px; font-size: 15.5px; }
+  .step-body { color: var(--text-muted); font-size: 14.5px; max-width: 560px; }
+
+  .fn-table { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .fn-row { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--line); align-items: center; }
+  .fn-row:first-child { border-top: none; }
+  .fn-name { font-family: 'IBM Plex Mono', monospace; color: var(--mint); font-size: 13.5px; }
+  .fn-desc { color: var(--text-muted); font-size: 13.5px; }
+  @media (max-width: 620px) { .fn-row { grid-template-columns: 1fr; gap: 4px; } }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+  .note.warn { border-color: var(--amber); background: rgba(231,169,62,0.06); color: var(--text-muted); }
+  .note.warn strong { color: var(--amber); }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">SAS Turbinado · Hash Object · Metaprogramação</div>
+    <h1>Join artesanal: hash como índice, POINT= como resposta</h1>
+    <p class="lede">A maioria acha que SAS turbinado é <code style="font-family:'IBM Plex Mono',monospace;background:var(--surface);padding:2px 6px;border-radius:4px;color:var(--mint);">%MACRO</code>. Não é. É tratar hash object como índice de banco de dados, acesso a disco como ponteiro, e <strong>regra de negócio como dado que gera código</strong> — em vez de tentar resolver tudo numa query com vários JOINs.</p>
+
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+        <span class="code-filename">join_artesanal.diff</span>
+      </div>
+      <div class="code-body">
+        <span class="code-line rm">- proc sort data=tabela_a; by chave; run;</span>
+        <span class="code-line rm">- proc sort data=tabela_b; by chave; run;</span>
+        <span class="code-line rm">- data saida; merge tabela_a tabela_b; by chave; run;</span>
+        <span class="code-line rm">- data saida_tratada; set saida; /* regra de negócio, 2ª passada */ run;</span>
+        <span class="code-line blank"></span>
+        <span class="code-line add">+ /* 1 passada: hash guarda só o ponteiro da tabela_b */</span>
+        <span class="code-line add">+ dcl hash idx(dataset:"tabela_b", multidata:'y');</span>
+        <span class="code-line add">+ idx.DefineKey('chave'); idx.DefineData('ptr'); idx.DefineDone();</span>
+        <span class="code-line add">+ /* acesso direto por ponteiro, regra aplicada na mesma passada */</span>
+        <span class="code-line add">+ set tabela_b point=ptr;</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="problema">
+  <div class="wrap">
+    <div class="eyebrow">O problema</div>
+    <h2>MERGE tradicional cobra o preço de duas ordenações e duas leituras</h2>
+    <p>O caminho de curso/certificação é sempre o mesmo: <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">PROC SORT</code> nas duas tabelas, <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">MERGE BY</code>, e depois um <strong>segundo DATA STEP</strong> pra aplicar a regra de negócio em cima do resultado. Em ambiente de volume real — carteira de crédito, milhões de contratos — isso não é estilo, é custo de disco medido em minutos ou horas.</p>
+    <p>A alternativa "avançada" que a maioria conhece é hash object completo: carregar a tabela inteira em memória pra fazer lookup O(1). Funciona até a tabela ficar grande demais pra caber — e aí volta tudo pro sort/merge de novo.</p>
+  </div>
+</section>
+
+<section class="arquitetura">
+  <div class="wrap">
+    <div class="eyebrow">A arquitetura</div>
+    <h2>Hash não precisa guardar o dado. Só precisa guardar onde ele está.</h2>
+    <p class="section-lede">A virada de chave: usar o hash como <strong>índice</strong> — guardando apenas a chave e um ponteiro (número da observação) — e usar <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">POINT=</code> pra materializar o registro completo só quando existe match de verdade.</p>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Hash completo (comum)</div>
+        <p>Guarda todas as colunas da tabela satélite dentro do hash. Rápido, mas o consumo de memória escala com o tamanho da tabela inteira — inviável quando a tabela satélite também é grande.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">Hash-de-ponteiro (turbinado)</div>
+        <p>Guarda só a chave + <code>ptr</code> (posição física do registro). O hash fica pequeno mesmo com tabela satélite enorme — e <code>POINT=</code> lê o registro completo só quando há match confirmado.</p>
+      </div>
+    </div>
+
+    <div class="snippet">
+      <div class="snippet-title">exemplo ilustrativo <span class="flag">— nomes genéricos</span></div>
+      <pre><span class="cm">/* Passada 1: constrói o índice — só chave + ponteiro */</span>
+ptr_b + 1;
+<span class="kw">if</span> (situacao <span class="kw">ne</span> <span class="str">'inativo'</span>) <span class="kw">then</span> rc = idx.add();
+
+<span class="cm">/* Passada 2: varre a tabela principal sequencialmente */</span>
+<span class="kw">do</span> <span class="kw">until</span>(eof);
+   <span class="kw">set</span> tabela_a end=eof;
+   rc = idx.find();
+   <span class="kw">do</span> <span class="kw">while</span> (rc = 0);
+      <span class="cm">/* só aqui materializa o registro completo, por ponteiro */</span>
+      <span class="kw">set</span> tabela_b point=ptr rc=rc_b;
+      <span class="cm">/* regra de negócio aplicada na mesma passada, sem 2º data step */</span>
+      output;
+      rc = idx.find_next();
+   <span class="kw">end</span>;
+<span class="kw">end</span>;</pre>
+    </div>
+
+    <p style="color: var(--text-muted); font-size: 14.5px;">Isso é, na prática, um <strong>index nested loop join</strong> — a mesma estratégia que um otimizador de banco relacional escolhe quando existe índice numa das tabelas. A diferença é que aqui foi escrito à mão, num DATA STEP puro, sem SQL nenhum envolvido.</p>
+  </div>
+</section>
+
+<section class="geracao">
+  <div class="wrap">
+    <div class="eyebrow">A segunda camada</div>
+    <h2>Regra de negócio como dado, não como query complicada</h2>
+    <p class="section-lede">Quando a regra de classificação depende de uma combinação grande de condições — carteira, segmento, tipo de pessoa, faixa de produto — a tentação é escrever um <code style="font-family:'IBM Plex Mono',monospace;color:var(--mint);">CASE WHEN</code> gigante ou um SQL com vários JOINs condicionais. Isso empurra decisão complexa para dentro do otimizador, toda vez que o job roda.</p>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">Query com vários JOINs</div>
+        <p>O otimizador reavalia a lógica condicional a cada execução. Difícil de auditar — sem rodar <code>EXPLAIN</code>, ninguém sabe qual branch está sendo usado. Plano de execução muda conforme volume, silenciosamente.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">Geração de código a partir de tabela</div>
+        <p>Uma tabela de regra vira, via hash + <code>PUT</code>, um programa <code>IF/ELSE</code> estático — gerado uma vez, incluído no job principal via <code>%INCLUDE</code>. A decisão já vem resolvida antes do dado real ser processado.</p>
+      </div>
+    </div>
+
+    <div class="snippet">
+      <div class="snippet-title">esqueleto ilustrativo do gerador</div>
+      <pre><span class="kw">data</span> _null_;
+   file <span class="str">"regra_gerada.sas"</span>;
+   <span class="cm">/* itera a tabela de regra via hash + hiter, */</span>
+   <span class="cm">/* escreve IF/ELSE já resolvido pra cada combinação */</span>
+   put <span class="str">'if (segmento eq '</span> chave <span class="str">') then pool = '</span> valor <span class="str">';'</span>;
+run;
+
+<span class="cm">/* no job principal, o código gerado é só incluído: */</span>
+%include <span class="str">"regra_gerada.sas"</span>;</pre>
+    </div>
+
+    <div class="note">
+      A ideia central: trocar complexidade em <strong>runtime</strong> por complexidade em <strong>build-time</strong>. A lógica difícil é resolvida uma vez, na geração — e o processamento real, por maior que seja o volume, só executa comparações simples já achatadas.
+    </div>
+  </div>
+</section>
+
+<section class="referencia">
+  <div class="wrap">
+    <div class="eyebrow">Referência rápida</div>
+    <h2>Peças do hash object que sustentam essa arquitetura</h2>
+
+    <div class="fn-table">
+      <div class="fn-row">
+        <div class="fn-name">multidata: 'y'</div>
+        <div class="fn-desc">Permite mais de um registro por chave — essencial quando um contrato tem várias garantias, por exemplo.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">find_next()</div>
+        <div class="fn-desc">Percorre todos os registros de uma mesma chave num hash multidata — o "cursor" que avança pela fila de ponteiros.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">dcl hiter</div>
+        <div class="fn-desc">Iterador de hash usado para varrer toda a tabela de regra durante a geração de código — sem precisar de PROC SQL / INTO :.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">SET ... POINT=</div>
+        <div class="fn-desc">Acesso direto a uma observação por posição física — o que transforma o ponteiro guardado no hash em dado real.</div>
+      </div>
+    </div>
+
+    <div class="note warn">
+      <strong>Dois cuidados que sustentam a mágica:</strong> desde a Versão 8 do SAS, <code style="font-family:'IBM Plex Mono',monospace;color:var(--amber);">POINT=</code> funciona normalmente em dataset comprimido — a opção <code style="font-family:'IBM Plex Mono',monospace;color:var(--amber);">POINTOBS=YES</code> já vem como padrão. A exceção real é quando o dataset foi criado com <code style="font-family:'IBM Plex Mono',monospace;color:var(--amber);">REUSE=YES</code> (reaproveita espaço de observações deletadas) — nesse caso o SAS desliga o <code style="font-family:'IBM Plex Mono',monospace;color:var(--amber);">POINTOBS=</code> automaticamente, e <code style="font-family:'IBM Plex Mono',monospace;color:var(--amber);">POINT=</code> deixa de funcionar. O cuidado que continua valendo sempre: o ponteiro só é válido enquanto a ordem física da tabela satélite não mudar entre a carga do índice e a leitura. Vale documentar isso explicitamente no código — é o tipo de coisa que quebra silenciosamente meses depois.
+    </div>
+  </div>
+</section>
+
+<section class="fechamento">
+  <div class="wrap">
+    <p style="font-family: 'IBM Plex Mono', monospace; font-size: clamp(19px, 2.8vw, 24px); font-weight: 600; color: var(--text); max-width: 640px; margin: 0;">
+      Quer performance no SAS? Faz direito que ele é muito rápido <span style="color: var(--amber);">kkkk</span>
+    </p>
+    <p style="color: var(--text-muted); font-size: 15px; max-width: 600px; margin-top: 16px;">
+      Não é a linguagem que é lenta. É o jeito que a maioria escreve nela — sort duplo, merge cego, query com JOIN aninhado tentando adivinhar o que um índice faria de graça. Trate o motor como ele merece e ele responde.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: sas · performance · metaprogramação</span>
+      <span>·</span>
+      <span>stack: sas base · hash object · data step</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

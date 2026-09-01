@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — IA e ESG: a conta energética que ninguém está fechando</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="IA e ESG: a conta energética que ninguém está fechando">
+<meta property="og:description" content="Empresa bate no peito dizendo que é ESG e, ao mesmo tempo, investe pesado em IA sem medir o custo de energia e água por trás. Os números por trás dessa contradição.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_ia_esg_custo_ambiental.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/ia_esg_custo_ambiental.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_ia_esg_custo_ambiental.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 640px; margin: 0 0 8px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .cs-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .cs-label { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; margin-bottom: 14px; }
+  .cs-card.challenge .cs-label { color: var(--rust); }
+  .cs-card.solution .cs-label { color: var(--mint); }
+  .cs-card p { color: var(--text-muted); font-size: 14.5px; margin: 0; }
+  @media (max-width: 620px) { .cs-grid { grid-template-columns: 1fr; } }
+
+  .fn-table { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .fn-row { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--line); align-items: center; }
+  .fn-row:first-child { border-top: none; }
+  .fn-name { font-family: 'IBM Plex Mono', monospace; color: var(--mint); font-size: 13.5px; }
+  .fn-desc { color: var(--text-muted); font-size: 13.5px; }
+  @media (max-width: 620px) { .fn-row { grid-template-columns: 1fr; gap: 4px; } }
+
+  .diff-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .diff-col { padding: 24px; }
+  .diff-col.out { background: rgba(193,80,58,0.05); border-right: 1px solid var(--line); }
+  .diff-col.in { background: rgba(95,175,160,0.05); }
+  .diff-col-label { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; font-weight: 600; }
+  .diff-col.out .diff-col-label { color: var(--rust); }
+  .diff-col.in .diff-col-label { color: var(--mint); }
+  .diff-item { display: flex; gap: 10px; font-size: 14.5px; color: var(--text-muted); padding: 9px 0; }
+  .diff-item .marker { font-family: 'IBM Plex Mono', monospace; font-weight: 600; flex-shrink: 0; }
+  .diff-col.out .marker { color: var(--rust); }
+  .diff-col.in .marker { color: var(--mint); }
+  @media (max-width: 620px) { .diff-list { grid-template-columns: 1fr; } .diff-col.out { border-right: none; border-bottom: 1px solid var(--line); } }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+  .note strong { color: var(--text-muted); }
+
+  .source-line { font-size: 12px; color: var(--text-faint); margin-top: 14px; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">ESG · Infraestrutura de IA · Custo Oculto</div>
+    <h1>IA e ESG: a conta energética que ninguém está fechando</h1>
+    <p class="lede">Uma única consulta a um chatbot consome em média <strong>2,9 Wh</strong> — cerca de dez vezes mais do que uma busca comum no Google. Multiplica isso por bilhões de consultas por dia, some o resfriamento de servidor puxando água em regiões já estressadas hidricamente, e chega uma pergunta incômoda: dá pra bater no peito dizendo "somos ESG" e, ao mesmo tempo, adotar IA em tudo sem medir o que isso custa pro planeta?</p>
+  </div>
+</header>
+
+<section class="problema">
+  <div class="wrap">
+    <div class="eyebrow">A contradição</div>
+    <h2>Discurso de vitrine, conta que ninguém mostra</h2>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">O que a empresa fala</div>
+        <p>Relatório de sustentabilidade bonito, metas de carbono neutro, selo ESG na apresentação institucional — o discurso público é de responsabilidade ambiental e uso consciente de recursos.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">O que a adoção de IA custa</div>
+        <p>Cada modelo rodando em produção, cada assistente "em tudo", cada chamada de API consome energia e água — direta (resfriamento) e indireta (geração elétrica) — numa escala que cresce junto com o volume de uso, não com a intenção por trás dele.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="numeros">
+  <div class="wrap">
+    <div class="eyebrow">Os números</div>
+    <h2>O que está por trás de "só um prompt"</h2>
+    <p class="section-lede">Não é sobre uma consulta isolada — é sobre o volume agregado e a velocidade de crescimento dessa infraestrutura.</p>
+
+    <div class="fn-table">
+      <div class="fn-row">
+        <div class="fn-name">Consulta vs. busca</div>
+        <div class="fn-desc">Uma consulta típica a um chatbot consome cerca de 2,9 Wh, contra ~0,3 Wh de uma busca padrão no Google — na ordem de 10x mais energia por interação.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Inferência, não treino</div>
+        <div class="fn-desc">80% a 90% do consumo total de energia de um modelo de IA vem da fase de inferência (uso diário em produção) — não do treinamento, que é o que normalmente vira manchete.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Eletricidade global de data center</div>
+        <div class="fn-desc">De ~460 TWh em 2024 para uma projeção de ~945 TWh até 2030 — quase o dobro em seis anos, puxado majoritariamente por carga de IA.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Água, o custo escondido</div>
+        <div class="fn-desc">O consumo global de água por data centers está estimado em ~560 bilhões de litros por ano, somando resfriamento direto dos servidores e a água usada nas usinas que geram a eletricidade consumida.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Densidade energética por servidor</div>
+        <div class="fn-desc">Aumento de cerca de 11x entre 2020 e 2025 — o hardware que roda IA hoje é ordens de magnitude mais faminto por energia do que o de cinco anos atrás.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Fatia da matriz elétrica dos EUA</div>
+        <div class="fn-desc">De aproximadamente 1% em 2024, com estimativas indo de 2,3% a 7,4% até 2030 dependendo do ritmo de expansão da IA — um salto de escala em menos de uma década.</div>
+      </div>
+    </div>
+    <p class="source-line">Fontes: Agência Internacional de Energia, relatórios setoriais de consumo de data center e estimativas de mercado 2024–2026.</p>
+  </div>
+</section>
+
+<section class="motor">
+  <div class="wrap">
+    <div class="eyebrow">O que sustenta isso</div>
+    <h2>O incentivo comercial não está alinhado com o custo ambiental</h2>
+    <p>Boa parte dos modelos de negócio em IA generativa é otimizada pra maximizar tempo de interação ou volume de chamada — quanto mais uso, mais receita. Isso não torna a tecnologia "má" por si só, mas cria um desalinhamento estrutural: o incentivo comercial empurra pra mais consumo, exatamente o oposto do que uma agenda ESG séria pediria.</p>
+    <p>É a mesma lógica de qualquer recurso sem dono e sem critério de uso — só que aqui o "recurso guardado sem necessidade" não é um HD parado, é energia e água sendo puxadas continuamente pra sustentar adoção que muitas vezes acontece por pressão de mercado, não por ganho real medido.</p>
+
+    <div class="note">
+      <strong>Ponto prático:</strong> empresa que investe pesado em IA — direta (times próprios) ou indiretamente (via cloud provider, parceria, ferramenta embarcada em outro produto) — enquanto se posiciona como "100% ESG" abre flanco real de questionamento em auditoria, relatório de sustentabilidade e junto a investidor mais atento. Não é discussão filosófica: é risco reputacional mensurável.
+    </div>
+  </div>
+</section>
+
+<section class="criterios">
+  <div class="wrap">
+    <div class="eyebrow">O que muda na prática</div>
+    <h2>Adoção sem critério vs. adoção com critério</h2>
+
+    <div class="diff-list">
+      <div class="diff-col out">
+        <div class="diff-col-label">Sem critério</div>
+        <div class="diff-item"><span class="marker">−</span>IA adotada por pressão de mercado, sem medir custo x ganho</div>
+        <div class="diff-item"><span class="marker">−</span>Nenhum acompanhamento de consumo de energia/água por uso</div>
+        <div class="diff-item"><span class="marker">−</span>Relatório ESG e investimento em IA tratados como assuntos separados</div>
+        <div class="diff-item"><span class="marker">−</span>Modelo caro rodando pra tarefa que um modelo pequeno resolveria</div>
+      </div>
+      <div class="diff-col in">
+        <div class="diff-col-label">Com critério</div>
+        <div class="diff-item"><span class="marker">+</span>Caso de uso justificado por ganho real, não por medo de ficar pra trás</div>
+        <div class="diff-item"><span class="marker">+</span>Custo ambiental entra na mesma planilha do custo financeiro</div>
+        <div class="diff-item"><span class="marker">+</span>Métrica ESG e investimento em infraestrutura de IA reportados juntos</div>
+        <div class="diff-item"><span class="marker">+</span>Modelo dimensionado pro tamanho real do problema</div>
+      </div>
+    </div>
+
+    <div class="note">
+      Achar a tecnologia fascinante e usá-la bastante não é incompatível com ser cético do hype em volta dela. O problema nunca foi a ferramenta — é tratar adoção em massa como virtude por si só, sem nunca perguntar quanto isso custa, pra quem, e se o ganho justifica.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: ESG &amp; infraestrutura de IA</span>
+      <span>·</span>
+      <span>energia · água · custo oculto</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
