@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ed Kazuo Kuno — Kaizen em Dados: por que o método perdeu força</title>
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kaizen em Dados: por que o método que veio do chão de fábrica perdeu força em Analytics">
+<meta property="og:description" content="改善 nasceu para processo físico, visível, estável. Dados são o oposto disso — e é exatamente por isso que times de tecnologia seguem tentando adivinhar sozinhos o que só quem vive o operacional sabe.">
+<meta property="og:image" content="https://edkazuo.github.io/services/cover_kaizen_dados.png">
+<meta property="og:url" content="https://edkazuo.github.io/services/kaizen_dados.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://edkazuo.github.io/services/cover_kaizen_dados.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #10151c; --surface: #171f28; --surface-2: #1f2933; --line: #2a3540;
+    --text: #edeff2; --text-muted: #8d98a6; --text-faint: #5b6673;
+    --rust: #c1503a; --mint: #5fafa0; --amber: #e7a93e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ink); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .jp { font-family: 'Noto Sans JP', sans-serif; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 28px; }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .nav-name { font-size: 15px; font-weight: 600; text-decoration: none; }
+  .back-link { font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  .back-link:hover { color: var(--text); }
+
+  .hero { padding: 48px 0 40px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint); font-weight: 600; margin-bottom: 18px; }
+  h1 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 4.2vw, 38px); font-weight: 700; line-height: 1.2; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .hero p.lede { font-size: 17px; color: var(--text-muted); max-width: 620px; margin: 0 0 36px; }
+  .hero p.lede strong { color: var(--text); font-weight: 500; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-family: 'IBM Plex Mono', monospace; font-size: clamp(20px, 2.6vw, 25px); font-weight: 600; margin: 0 0 20px; }
+  .section-lede { color: var(--text-muted); max-width: 620px; margin-bottom: 32px; }
+
+  /* IDEOGRAM CARDS */
+  .kanji-row { display: flex; align-items: stretch; gap: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+  .kanji-card { flex: 1; padding: 32px 24px; text-align: center; }
+  .kanji-card + .kanji-card { border-left: 1px solid var(--line); }
+  .kanji-glyph { font-size: 64px; line-height: 1; margin-bottom: 14px; color: var(--text); }
+  .kanji-card.kai .kanji-glyph { color: var(--rust); }
+  .kanji-card.zen .kanji-glyph { color: var(--mint); }
+  .kanji-romaji { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text-faint); margin-bottom: 6px; }
+  .kanji-meaning { font-size: 14.5px; color: var(--text-muted); }
+  .kanji-plus { display: flex; align-items: center; justify-content: center; width: 48px; font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: var(--text-faint); background: var(--surface); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+  .kanji-result { text-align: center; padding: 20px 24px; }
+  .kanji-result .jp { font-size: 22px; color: var(--amber); margin-bottom: 8px; }
+  .kanji-result .meaning { font-size: 15px; color: var(--text); font-weight: 500; }
+  .kanji-result .sub { font-size: 13px; color: var(--text-faint); margin-top: 4px; }
+  @media (max-width: 560px) { .kanji-glyph { font-size: 46px; } .kanji-card { padding: 22px 14px; } }
+
+  /* DIFF-LIST (reaproveitado) */
+  .diff-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .diff-col { padding: 24px; }
+  .diff-col.out { background: rgba(193,80,58,0.05); border-right: 1px solid var(--line); }
+  .diff-col.in { background: rgba(95,175,160,0.05); }
+  .diff-col-label { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; font-weight: 600; }
+  .diff-col.out .diff-col-label { color: var(--rust); }
+  .diff-col.in .diff-col-label { color: var(--mint); }
+  .diff-item { display: flex; gap: 10px; font-size: 14.5px; color: var(--text-muted); padding: 9px 0; }
+  .diff-item .marker { font-family: 'IBM Plex Mono', monospace; font-weight: 600; flex-shrink: 0; }
+  .diff-col.out .marker { color: var(--rust); }
+  .diff-col.in .marker { color: var(--mint); }
+  @media (max-width: 620px) { .diff-list { grid-template-columns: 1fr; } .diff-col.out { border-right: none; border-bottom: 1px solid var(--line); } }
+
+  /* CICLO (timeline reaproveitada, mas circular em texto) */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before { content: ""; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
+  .tl-item { position: relative; padding-bottom: 28px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-dot { position: absolute; left: -32px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); border: 2px solid var(--mint); }
+  .tl-item.fogo .tl-dot { border-color: var(--rust); background: var(--rust); }
+  .tl-title { font-weight: 600; font-size: 15.5px; margin-bottom: 5px; }
+  .tl-desc { color: var(--text-muted); font-size: 14px; max-width: 580px; }
+
+  .quote-block { border-left: 3px solid var(--amber); padding: 4px 0 4px 22px; margin: 28px 0; }
+  .quote-block p { font-size: 17px; color: var(--text); font-style: italic; margin: 0; }
+  .quote-block .attr { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--text-faint); margin-top: 10px; font-style: normal; }
+
+  /* PONTE (ilustração metafórica) */
+  .bridge-wrap { border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 20px 20px; margin: 28px 0; background: var(--surface); }
+  .bridge-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .bridge-tag.top { fill: var(--mint); }
+  .bridge-tag.bottom { fill: var(--rust); }
+  .bridge-caption { display: flex; justify-content: space-between; gap: 16px; margin-top: 14px; }
+  .bridge-caption .side { font-size: 12.5px; color: var(--text-faint); max-width: 260px; }
+  .bridge-caption .side strong { color: var(--text-muted); font-weight: 500; }
+  @media (max-width: 620px) { .bridge-caption { flex-direction: column; } }
+
+  /* STEPS (reaproveitado do rust_wheel) */
+  .steps { list-style: none; padding: 0; margin: 0; }
+  .step { padding: 24px 0; border-top: 1px solid var(--line); }
+  .step:first-child { border-top: none; padding-top: 0; }
+  .step-head { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .step-num { font-family: 'IBM Plex Mono', monospace; color: var(--amber); font-weight: 700; font-size: 15px; }
+  .step-title { font-weight: 600; font-size: 15.5px; }
+  .step-body { color: var(--text-muted); font-size: 14px; max-width: 600px; }
+
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .cs-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .cs-label { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; margin-bottom: 14px; }
+  .cs-card.challenge .cs-label { color: var(--mint); }
+  .cs-card.solution .cs-label { color: var(--rust); }
+  .cs-card p { color: var(--text-muted); font-size: 14.5px; margin: 0; }
+  .cs-card .mono-line { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 4px; }
+  @media (max-width: 620px) { .cs-grid { grid-template-columns: 1fr; } }
+
+  .fn-table { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .fn-row { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; padding: 14px 20px; border-top: 1px solid var(--line); align-items: center; }
+  .fn-row:first-child { border-top: none; }
+  .fn-name { font-family: 'IBM Plex Mono', monospace; color: var(--mint); font-size: 13.5px; }
+  .fn-desc { color: var(--text-muted); font-size: 13.5px; }
+  @media (max-width: 620px) { .fn-row { grid-template-columns: 1fr; gap: 4px; } }
+
+  .note { border: 1px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; color: var(--text-faint); font-size: 13px; margin-top: 32px; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+  .statusbar { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .statusbar span.ok { color: var(--mint); }
+
+  @media (max-width: 560px) { .wrap { padding: 0 20px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="index.html" class="nav-name mono">Ed Kazuo Kuno</a>
+    <a class="back-link" href="index.html">← Todos os projetos</a>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Governança de Dados · Kaizen · Causa Raiz</div>
+    <h1>Kaizen em Dados: por que o método perdeu força</h1>
+    <p class="lede">改善 nasceu para o chão de fábrica — processo físico, repetitivo, visível. Dados são o oposto disso. E é exatamente por essa distância que times de tecnologia seguem tentando <strong>adivinhar sozinhos</strong> o que só quem vive o operacional sabe.</p>
+  </div>
+</header>
+
+<section class="ideograma">
+  <div class="wrap">
+    <div class="eyebrow">O que a palavra diz</div>
+    <h2>Kaizen não significa "melhoria". Significa "mudança para melhor"</h2>
+    <p class="section-lede">A palavra é a soma de dois ideogramas — e a diferença entre "melhoria" (um estado) e "mudança para melhor" (uma ação contínua) não é sutileza de tradutor. É o núcleo do método.</p>
+
+    <div class="kanji-row">
+      <div class="kanji-card kai">
+        <div class="kanji-glyph jp">改</div>
+        <div class="kanji-romaji">kai</div>
+        <div class="kanji-meaning">mudar, alterar, corrigir</div>
+      </div>
+      <div class="kanji-plus">+</div>
+      <div class="kanji-card zen">
+        <div class="kanji-glyph jp">善</div>
+        <div class="kanji-romaji">zen</div>
+        <div class="kanji-meaning">bom, virtuoso, correto</div>
+      </div>
+    </div>
+
+    <div class="kanji-result">
+      <div class="jp">改善 — かいぜん</div>
+      <div class="meaning">"Mudança para melhor" / "melhoria contínua"</div>
+      <div class="sub">Não é um evento único. É a disposição de mudar de novo, sempre que o real mostrar que o desenho está incompleto.</div>
+    </div>
+  </div>
+</section>
+
+<section class="origem">
+  <div class="wrap">
+    <div class="eyebrow">De onde veio, pra onde foi pedido emprestado</div>
+    <h2>Chão de fábrica e sala de arquitetura de dados são mundos diferentes</h2>
+    <p class="section-lede">O método funciona quando três condições existem ao mesmo tempo. Em Dados, as três costumam faltar.</p>
+
+    <div class="diff-list">
+      <div class="diff-col out">
+        <div class="diff-col-label">Chão de fábrica (onde nasceu)</div>
+        <div class="diff-item"><span class="marker">•</span>Defeito é físico — você vê a peça quebrada na esteira</div>
+        <div class="diff-item"><span class="marker">•</span>Processo é estável o bastante pra melhorar em ciclos curtos</div>
+        <div class="diff-item"><span class="marker">•</span>Quem opera está no mesmo galpão, fácil de reunir</div>
+        <div class="diff-item"><span class="marker">•</span>Parar a linha pra investigar causa raiz é aceito como investimento</div>
+      </div>
+      <div class="diff-col in">
+        <div class="diff-col-label">Arquitetura de dados (onde é pedido emprestado)</div>
+        <div class="diff-item"><span class="marker">•</span>Defeito é invisível — um schema muda em silêncio, sem alarme</div>
+        <div class="diff-item"><span class="marker">•</span>Velocidade > estabilidade — sprint de 2 semanas não sobra tempo pra parar</div>
+        <div class="diff-item"><span class="marker">•</span>Quem opera está disperso — squads, sistemas, às vezes empresas diferentes</div>
+        <div class="diff-item"><span class="marker">•</span>Parar pra investigar causa raiz é lido como lentidão, não investimento</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="grao">
+  <div class="wrap">
+    <div class="eyebrow">Pior do que schema quebrando</div>
+    <h2>Quando o grão muda e ninguém percebe</h2>
+    <p class="section-lede">Schema quebra alto — job trava, tipo não bate, alguém recebe alerta. Mudança de grão na tabela fato quebra baixo: o pipeline roda liso, sem erro nenhum, e o número sai errado em silêncio.</p>
+
+    <div class="cs-grid">
+      <div class="cs-card challenge">
+        <div class="cs-label">O grão original (melhor dos mundos)</div>
+        <span class="mono-line">pedido (1) → itens_pedido (N)</span>
+        <p>Um <code style="color:var(--mint);">pedido_id</code> representa uma unidade atômica de venda. Toda métrica histórica — contagem de pedidos, ticket médio, reconciliação financeira — foi construída assumindo essa relação 1:N estável.</p>
+      </div>
+      <div class="cs-card solution">
+        <div class="cs-label">O grão depois do split (silencioso)</div>
+        <span class="mono-line">Pedido A (n−1 itens) · Pedido B (n−3 itens)</span>
+        <p>Mesmo pedido, agora fragmentado — por exemplo, por CD de origem. Ambos vinculados a um <code style="color:var(--rust);">pedido_principal</code>. Nenhuma coluna mudou, nenhum tipo mudou, nenhuma FK quebrou. Tecnicamente, nada aconteceu.</p>
+      </div>
+    </div>
+
+    <div class="fn-table" style="margin-top:24px;">
+      <div class="fn-row">
+        <div class="fn-name">COUNT DISTINCT pedido_id</div>
+        <div class="fn-desc">Passa a contar 2 onde deveria contar 1 — volume de vendas infla sem nenhum erro disparado.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Ticket médio</div>
+        <div class="fn-desc">Despenca artificialmente se o valor total é dividido entre os fragmentos e alguém soma sem reagrupar pelo pedido principal.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">Reconciliação financeiro × atendimento</div>
+        <div class="fn-desc">Os dois times fecham números diferentes pro mesmo evento de negócio — nenhum dos dois está errado, só estão olhando graus de agregação diferentes sem saber disso.</div>
+      </div>
+      <div class="fn-row">
+        <div class="fn-name">JOIN com histórico pré-mudança</div>
+        <div class="fn-desc">Cardinalidade 1:1 vira 1:N sem aviso — fan-out silencioso multiplica linhas em qualquer junção com dado anterior à mudança.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      Na modelagem dimensional (Kimball), declarar o grão de uma tabela fato explicitamente é considerada a decisão mais importante do design — exatamente porque violá-la silenciosamente escapa de qualquer teste de qualidade baseado em schema. Um Data Contract de verdade precisa declarar não só schema, mas grão e chave de negócio — e testar invariantes ("soma dos fragmentos deve bater com o total esperado"), não só tipo e nulidade.
+    </div>
+  </div>
+</section>
+
+<section class="schema-evolution">
+  <div class="wrap">
+    <div class="eyebrow">Ferramenta moderna, mesmo risco</div>
+    <h2>Schema evolution não é o vilão. É a ausência de alerta</h2>
+    <p class="section-lede">Isso não é crítica ao recurso — <code style="color:var(--mint);">mergeSchema</code> no Delta Lake é fantástico, evita falha desnecessária pra mudança aditiva legítima. O problema não é a ferramenta aceitar a coluna nova. É aceitar <strong style="color:var(--text);">sem avisar ninguém</strong> que aceitou.</p>
+
+    <p style="color:var(--text-muted); font-size:14.5px; max-width:640px; margin-bottom:28px;">A origem inclui uma coluna nova. Ninguém no time de consumo sabe pra que ela serve — nem existe onde perguntar. Sem metadado, sem dono declarado, sem changelog. O analista mais cuidadoso, que percebe a coluna e tenta investigar, esbarra num muro: só sobra adivinhar pelo nome e pelo padrão de valor. E adivinhação com confiança é o pior tipo de erro — porque ninguém a questiona depois.</p>
+
+    <div class="diff-list">
+      <div class="diff-col out">
+        <div class="diff-col-label">Schema evolution sem alerta</div>
+        <div class="diff-item"><span class="marker">−</span>Coluna nova entra na tabela de forma automática e silenciosa</div>
+        <div class="diff-item"><span class="marker">−</span>Nenhum time é notificado que algo mudou</div>
+        <div class="diff-item"><span class="marker">−</span>Significado de negócio fica só na cabeça de quem criou a coluna na origem</div>
+        <div class="diff-item"><span class="marker">−</span>Consumidor final adivinha pelo nome — com confiança, sem checar</div>
+      </div>
+      <div class="diff-col in">
+        <div class="diff-col-label">Schema evolution com alerta</div>
+        <div class="diff-item"><span class="marker">+</span>Merge continua automático — a fricção operacional não volta</div>
+        <div class="diff-item"><span class="marker">+</span>Evento de mudança dispara notificação pra governança de dados</div>
+        <div class="diff-item"><span class="marker">+</span>Prazo curto pra origem documentar propósito e dono da coluna nova</div>
+        <div class="diff-item"><span class="marker">+</span>Até a documentação chegar, coluna fica marcada como "não verificada" no catálogo</div>
+      </div>
+    </div>
+
+    <div class="note">
+      A peça que falta não é desligar o recurso — é instrumentar o gatilho. O Delta Lake já registra toda mudança de schema no transaction log (<span class="mono" style="color:var(--text-muted);">DESCRIBE HISTORY</span>); o que normalmente não existe é um hook lendo esse log e roteando o evento pra alguém responsável verificar o que de fato aconteceu, antes que a coluna vire métrica de produção sem ninguém ter validado o significado dela.
+    </div>
+  </div>
+</section>
+
+<section class="falacia">
+  <div class="wrap">
+    <div class="eyebrow">A falácia que sustenta o problema</div>
+    <h2>"Domino o processo, domino o negócio"</h2>
+    <p class="section-lede">Não é mentira. É verdade olhando o conjunto — e é exatamente por isso que ela sobrevive tanto tempo antes de ser questionada.</p>
+
+    <div class="quote-block">
+      <p>Visão gerencial mede fluxo: pedido processado, SLA cumprido, dashboard verde — dentro do esperado. O que ela não mede é integridade estrutural: cada fronteira sem contrato de dado é uma viga que já rachou por baixo, sustentando peso que não deveria mais sustentar.</p>
+    </div>
+
+    <div class="bridge-wrap">
+      <svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustração de uma ponte: o tabuleiro no topo mostra tráfego fluindo normalmente, enquanto duas das vigas de sustentação abaixo aparecem rachadas.">
+        <text x="60" y="34" class="bridge-tag top mono">visão gerencial — o que se vê</text>
+        <line x1="60" y1="42" x2="60" y2="88" stroke="#5fafa0" stroke-width="1.5" stroke-dasharray="3 4"/>
+        <line x1="760" y1="42" x2="760" y2="88" stroke="#5fafa0" stroke-width="1.5" stroke-dasharray="3 4"/>
+
+        <circle cx="150" cy="76" r="4" fill="#e7a93e"/>
+        <circle cx="310" cy="76" r="4" fill="#e7a93e"/>
+        <circle cx="470" cy="76" r="4" fill="#e7a93e"/>
+        <circle cx="630" cy="76" r="4" fill="#e7a93e"/>
+        <text x="410" y="76" text-anchor="middle" class="mono" font-size="11" fill="#5b6673">fluxo normal →</text>
+
+        <rect x="55" y="90" width="710" height="16" rx="3" fill="#5fafa0"/>
+
+        <rect x="120" y="106" width="16" height="60" fill="#5fafa0"/>
+        <rect x="120" y="174" width="16" height="56" fill="#5fafa0"/>
+
+        <rect x="668" y="106" width="16" height="60" fill="#5fafa0"/>
+        <rect x="668" y="174" width="16" height="56" fill="#5fafa0"/>
+
+        <rect x="394" y="106" width="16" height="60" fill="#5fafa0"/>
+        <rect x="394" y="174" width="16" height="56" fill="#5fafa0"/>
+
+        <rect x="257" y="106" width="16" height="34" fill="#c1503a"/>
+        <path d="M 257 140 L 273 148 L 259 158 L 273 168 L 265 176" fill="none" stroke="#c1503a" stroke-width="2.5"/>
+        <rect x="257" y="176" width="16" height="54" fill="#c1503a"/>
+
+        <rect x="531" y="106" width="16" height="30" fill="#c1503a"/>
+        <path d="M 531 136 L 547 145 L 533 155 L 547 164 L 539 176" fill="none" stroke="#c1503a" stroke-width="2.5"/>
+        <rect x="531" y="176" width="16" height="54" fill="#c1503a"/>
+
+        <line x1="30" y1="230" x2="790" y2="230" stroke="#2a3540" stroke-width="2"/>
+        <path d="M 30 246 Q 90 236 150 246 T 270 246 T 390 246 T 510 246 T 630 246 T 750 246" fill="none" stroke="#2a3540" stroke-width="1.5"/>
+
+        <line x1="265" y1="270" x2="265" y2="238" stroke="#c1503a" stroke-width="1.5" stroke-dasharray="3 4"/>
+        <line x1="539" y1="270" x2="539" y2="238" stroke="#c1503a" stroke-width="1.5" stroke-dasharray="3 4"/>
+        <text x="265" y="284" text-anchor="middle" class="bridge-tag bottom mono">sem contrato</text>
+        <text x="539" y="284" text-anchor="middle" class="bridge-tag bottom mono">sem contrato</text>
+      </svg>
+
+      <div class="bridge-caption">
+        <div class="side"><strong>Em cima:</strong> o que o dashboard mede — tráfego passando, dentro do esperado, todo indicador verde.</div>
+        <div class="side"><strong>Embaixo:</strong> o que ninguém mede — fronteiras sem dono, sem aviso de mudança, sustentando peso que não deveriam mais sustentar sozinhas.</div>
+      </div>
+    </div>
+
+    <p style="color:var(--text-muted); font-size:14.5px; max-width:620px;">A ponte não avisa antes de cair. Ela some do "dentro do esperado" exatamente no dia em que já é tarde — porque degradação estrutural não é linear, ela acumula em silêncio até o ponto de colapso. Sistema para sistema não workaround, não liga pro fornecedor implorando prazo, não substitui item de kit na mão quando falta peça. O diagrama bonito mostra a via feliz. A via real tem um Fulano cuidando de uma ponta e um Cicrano cuidando da outra — e, na maioria das vezes, os dois nunca se falaram.</p>
+  </div>
+</section>
+
+<section class="ciclo">
+  <div class="wrap">
+    <div class="eyebrow">O que acontece sem Kaizen de verdade</div>
+    <h2>Apagar fogo vira a única competência que a organização desenvolve</h2>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-title">TI desenha achando que cobriu tudo</div>
+        <div class="tl-desc">Dois ou três tecnólogos, numa sala fechada, imaginando cenário atrás de cenário — sem quem realmente opera o processo por perto.</div>
+      </div>
+      <div class="tl-item fogo">
+        <div class="tl-dot"></div>
+        <div class="tl-title">Produção quebra num buraco que já era conhecido</div>
+        <div class="tl-desc">Não por quem desenhou — por quem vive o operacional, que nunca foi chamado pra sala.</div>
+      </div>
+      <div class="tl-item fogo">
+        <div class="tl-dot"></div>
+        <div class="tl-title">Vira incêndio. Apaga-se o sintoma, não a causa</div>
+        <div class="tl-desc">Resolve rápido, parece eficiência. Mas ninguém nomeou o padrão recorrente por trás.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-title">Semanas depois, o mesmo buraco pega fogo em outro canto</div>
+        <div class="tl-desc">Apaga um ponto, surgem dois ou três em outro lugar — não é falta de esforço, é o mesmo buraco com várias saídas.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      O efeito colateral mais perigoso: o time começa a se sentir "sempre ocupado, sempre resolvendo coisa". Parece produtividade. É só a organização virando refém do próprio buraco que nunca foi tapado.
+    </div>
+  </div>
+</section>
+
+<section class="pratica">
+  <div class="wrap">
+    <div class="eyebrow">O antídoto</div>
+    <h2>Kaizen bem feito, aplicado à fronteira entre sistemas</h2>
+    <p class="section-lede">O Post-it é datado de propósito. A força do método nunca esteve na ferramenta — está em quem senta na mesa.</p>
+
+    <ol class="steps">
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">01</span><span class="step-title">Convocar quem vive o dia a dia, não quem desenha o processo</span></div>
+        <div class="step-body">Representação obrigatória de cada fronteira de sistema — não "quem entende de Transporte", mas quem opera o CD, quem roda o TMS, quem fecha o financeiro. É essa gente que sabe onde a regra já mudou por baixo dos panos.</div>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">02</span><span class="step-title">Categorizar o Post-it, não deixar solto</span></div>
+        <div class="step-body">"Onde o dado quebra", "quem deveria ser avisado e não é", "exceção que não está no fluxo desenhado" — categoria fixa transforma reclamação em causa raiz.</div>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">03</span><span class="step-title">Facilitador sem stake em nenhum sistema</span></div>
+        <div class="step-body">Se quem conduz tem território pra defender, a dinâmica vira "um dedo pra frente, três voltando" — todo mundo evitando ser apontado como causa.</div>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">04</span><span class="step-title">Incluir quem não entende nada do assunto — de propósito</span></div>
+        <div class="step-body">O time que conduz não pode ser só gente técnica ou só gente operacional. Alguém de fora do domínio pergunta "por que isso precisa ser assim?" sem constrangimento — porque não sabe que "óbvio" pra quem está por dentro. É essa pergunta ingênua, feita sem viés de especialista, que costuma destravar a causa raiz que todo mundo técnico deixou de questionar por já achar resolvida.</div>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">05</span><span class="step-title">Deixar a descoberta acontecer, mesmo que pareça óbvia depois</span></div>
+        <div class="step-body">É comum sair da sessão sabendo, pela primeira vez, "ah, essa ponta quem cuida é o Fulano" — e a ponta seguinte é o Cicrano, que nunca tinham se falado. Essa descoberta sozinha já paga a reunião.</div>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">06</span><span class="step-title">Sair com fronteira priorizada, não desabafo coletivo</span></div>
+        <div class="step-body">O resultado é uma lista curada de fronteiras sem contrato de dado, ordenada por impacto — isso vira roadmap real, não sensação de "foi bom desabafar".</div>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">07</span><span class="step-title">Dedicação integral, ou nem chama</span></div>
+        <div class="step-body">Kaizen custa caro de propósito: tira quem realmente entende do processo — não o estagiário mandado como substituto — da operação por dias seguidos. Se a pessoa não pode estar 100% dedicada, presencialmente, sem alternar com outra demanda, é melhor não convidar do que ter meia atenção na sala.</div>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">08</span><span class="step-title">Dar destino ao que foi descoberto</span></div>
+        <div class="step-body">Não exigir solução. Exigir destino e ownership. Nem toda causa encontrada termina em uma correção técnica — e nem toda correção cabe no horizonte do Kaizen. Cada achado precisa sair classificado: ação imediata, item de roadmap, decisão de governança ou impedimento estrutural/cultural a ser escalado. O que não pode acontecer é a descoberta voltar para a invisibilidade depois que a sala esvaziar.</div>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">09</span><span class="step-title">Patrocínio no topo — não é convite, é obrigação</span></div>
+        <div class="step-body">O chefe direto de quem realmente entende do processo vai resistir a liberar essa pessoa por 10 dias — pressão operacional do dia a dia sempre vence pedido educado feito de par pra par. Só board ou CEO têm autoridade pra transformar a participação em obrigação, não em favor a se pedir com jeitinho. Sem patrocínio explícito no topo, o convite depende de boa vontade — e boa vontade perde pra operação todas as vezes.</div>
+      </li>
+      <li class="step">
+        <div class="step-head"><span class="step-num mono">10</span><span class="step-title">Apresentar pra empresa toda, não só pra quem participou</span></div>
+        <div class="step-body">O resultado fechado só entre os envolvidos morre ali dentro. Melhoria contínua de verdade exige que o achado circule pra empresa inteira — não como relatório arquivado, mas como conteúdo que outros times reconhecem no próprio dia a dia. É essa exposição ampla que gera engajamento genuíno: gente de fora da sala se vendo no problema, oferecendo opinião, se sentindo parte da evolução — não só recebendo o resultado pronto.</div>
+      </li>
+    </ol>
+
+    <div class="note">
+      Desmobilizar quem realmente sabe do processo por 5 a 10 dias tem custo real, mensurável — produção parada, backfill necessário, gente sênior fora da operação. Mas é investimento, não gasto: a alternativa é o whack-a-mole eterno que abre essa página, que custa mais, só que diluído e invisível no orçamento. Meia dedicação não economiza — só garante Kaizen de fachada, sem causa raiz nenhuma encontrada.
+    </div>
+
+    <div class="note" style="margin-top:16px;">
+      Isso também é por que Kaizen não escala pra toda fronteira de dado indiscriminadamente — o custo de reunir gente sênior full-time pra cada integração seria maior que o problema. A decisão certa é onde investir primeiro: alto volume, alto impacto financeiro, ou onde o "apagar fogo" já virou rotina mensal.
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="statusbar">
+      <span><span class="ok">●</span> tema: governança de dados &amp; melhoria contínua</span>
+      <span>·</span>
+      <span>método: kaizen · 5 porquês · gemba</span>
+      <span>·</span>
+      <span><a href="index.html" style="color: inherit; text-decoration: underline;">ver outros projetos ↗</a></span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
